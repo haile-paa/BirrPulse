@@ -5,6 +5,7 @@ export interface NativeSms { id: string; address: string; body: string; date: nu
 interface Native {
   setAllowList(senders: string[], hints: string[]): void;
   drainQueue(): NativeSms[];
+  listInbox(minDate: number, indexFrom: number, maxCount: number): string;
   queueSize(): number;
   isIgnoringBatteryOptimizations(): boolean;
   openBatterySettings(): void;
@@ -19,3 +20,6 @@ export const drainQueue = (): NativeSms[] => { try { return native?.drainQueue()
 export const queueSize = (): number => { try { return native?.queueSize() ?? 0; } catch { return 0; } };
 export const isIgnoringBatteryOptimizations = (): boolean => { try { return native?.isIgnoringBatteryOptimizations() ?? true; } catch { return true; } };
 export const openBatterySettings = () => { try { native?.openBatterySettings(); } catch { /* ignore */ } };
+
+/** One inbox page as a JSON string (empty array when the native module is missing). */
+export const listInbox = (minDate: number, indexFrom: number, maxCount: number): string => { try { return native?.listInbox(minDate, indexFrom, maxCount) ?? '[]'; } catch { return '[]'; } };

@@ -46,6 +46,13 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "53ddf57f-2fe8-49f2-b31d-78b80df89220"
+      }
+    },
+    "owner": "haileyesus_e"
   }
 }

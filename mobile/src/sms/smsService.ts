@@ -2,18 +2,9 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import { demoSms, type RawSms } from './sampleSms';
 import { allowList } from './banks';
 
-// react-native-get-sms-android only exists in a development build (not Expo Go) and only on Android.
-let SmsAndroid: { list: (filter: string, fail: (e: string) => void, ok: (count: number, list: string) => void) => void } | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const mod = require('react-native-get-sms-android');
-  SmsAndroid = (mod?.default ?? mod) || null;
-  if (!SmsAndroid || typeof SmsAndroid.list !== 'function') SmsAndroid = null;
-} catch {
-  SmsAndroid = null;
-}
+import { isNativeSmsAvailable, listInbox } from '../../modules/birrpulse-sms';
 
-export const isSmsSupported = (): boolean => Platform.OS === 'android' && SmsAndroid !== null;
+export const isSmsSupported = (): boolean => Platform.OS === 'android' && isNativeSmsAvailable;
 
 export async function hasSmsPermission(): Promise<boolean> {
   if (!isSmsSupported()) return false;
@@ -38,18 +29,12 @@ const hintRegexes = () => allowList().hints.map((h) => { try { return new RegExp
 
 function readPage(sinceMs: number, indexFrom: number, pageSize: number): Promise<RawSms[]> {
   return new Promise((resolve, reject) => {
-    SmsAndroid!.list(
-      JSON.stringify({ box: 'inbox', minDate: sinceMs, indexFrom, maxCount: pageSize }),
-      (err) => reject(new Error(String(err))),
-      (_count, json) => {
-        try {
-          const rows = JSON.parse(json) as Array<{ _id: string; address: string; body: string; date: number }>;
-          resolve(rows.map((r) => ({ id: String(r._id), address: r.address, body: r.body, date: Number(r.date) })));
-        } catch (e) {
-          reject(e);
-        }
-      },
-    );
+    try {
+      const rows = JSON.parse(listInbox(sinceMs, indexFrom, pageSize)) as Array<{ _id: string; address: string; body: string; date: number }>;
+      resolve(rows.map((r) => ({ id: String(r._id), address: r.address, body: r.body, date: Number(r.date) })));
+    } catch (e) {
+      reject(e);
+    }
   });
 }
 

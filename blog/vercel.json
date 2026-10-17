@@ -1,0 +1,1 @@
+{ "rewrites": [{ "source": "/((?!downloads/|shots/|assets/).*)", "destination": "/index.html" }] }
