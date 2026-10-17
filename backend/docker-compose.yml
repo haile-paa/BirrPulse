@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo: { condition: service_healthy }
+    environment:
+      APP_ENV: production
+      PORT: "8080"
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: birrpulse
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env (openssl rand -hex 32)}
+      OTP_SECRET: ${OTP_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      FCM_CREDENTIALS_FILE: /run/secrets/fcm.json
+    volumes:
+      # Put your Firebase service account JSON at ./secrets/fcm.json (create an empty file to run without push).
+      - ./secrets/fcm.json:/run/secrets/fcm.json:ro
+    ports: ["8080:8080"]
+volumes:
+  mongo-data:

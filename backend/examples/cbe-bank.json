@@ -1,0 +1,22 @@
+{
+  "name": "Commercial Bank of Ethiopia",
+  "short": "CBE",
+  "color": "#7B2D8E",
+  "senders": ["CBE", "CBEBirr"],
+  "bodyHints": ["commercial bank of ethiopia", "banking with cbe"],
+  "active": true,
+  "templates": [
+    {
+      "id": "debit-service-charge",
+      "direction": "debit",
+      "flags": "i",
+      "pattern": "debited with ETB\\s*(?<amount>[\\d,]+\\.\\d{2})\\.\\s*Service charge of ETB\\s*(?<fee>[\\d,]+\\.\\d{2}) and VAT\\(15%\\) of ETB\\s*(?<vat>[\\d,]+\\.\\d{2}).*?Your Current Balance is ETB\\s*(?<balance>[\\d,]+\\.\\d{2})"
+    },
+    {
+      "id": "credit-from",
+      "direction": "credit",
+      "flags": "i",
+      "pattern": "Credited with ETB\\s*(?<amount>[\\d,]+\\.\\d{2}) from (?<counterparty>[A-Za-z .'-]+?),? on .*?Ref No (?<ref>[A-Z0-9]+)\\. Your Current Balance is ETB\\s*(?<balance>[\\d,]+\\.\\d{2})"
+    }
+  ]
+}

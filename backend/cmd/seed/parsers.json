@@ -1,0 +1,7 @@
+[
+  { "bankCode": "CBE", "name": "Commercial Bank of Ethiopia", "short": "CBE", "color": "#7B2D8E", "senders": ["CBE", "CBEBirr"], "bodyHints": ["commercial bank of ethiopia", "banking with cbe"], "templates": [], "active": true },
+  { "bankCode": "TELEBIRR", "name": "Telebirr", "short": "tele", "color": "#1C9AD6", "senders": ["127", "telebirr"], "bodyHints": ["telebirr"], "templates": [], "active": true },
+  { "bankCode": "AWASH", "name": "Awash Bank", "short": "Awash", "color": "#F28C1B", "senders": ["AwashBank", "Awash"], "bodyHints": ["awash bank"], "templates": [], "active": true },
+  { "bankCode": "DASHEN", "name": "Dashen Bank", "short": "Dashen", "color": "#1A4E9B", "senders": ["DashenBank", "Dashen"], "bodyHints": ["dashen bank"], "templates": [], "active": true },
+  { "bankCode": "BOA", "name": "Bank of Abyssinia", "short": "BoA", "color": "#C9A227", "senders": ["BOA", "BankOfAbyssinia", "Abyssinia"], "bodyHints": ["bank of abyssinia"], "templates": [], "active": true }
+]

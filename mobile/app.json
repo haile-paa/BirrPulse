@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "BirrPulse",
+    "slug": "birrpulse",
+    "scheme": "birrpulse",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.birrpulse.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#3A8D87",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "permissions": [
+        "android.permission.READ_SMS",
+        "android.permission.RECEIVE_SMS",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "ios": {
+      "bundleIdentifier": "com.birrpulse.app",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#3A8D87",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 140
+        }
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#3A8D87"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

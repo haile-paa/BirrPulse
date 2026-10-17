@@ -1,0 +1,189 @@
+/**
+ * Amharic (አማርኛ) translations. The key is the exact English string shown in the app; anything missing falls back to English.
+ * Sentences with {placeholders} are translated as templates (see t() in core.ts).
+ * Please have a native speaker review these before release.
+ */
+export const AM: Record<string, string> = {
+  // --- greetings, tabs, common
+  'Good morning': 'እንደምን አደሩ', 'Good afternoon': 'እንደምን ዋሉ', 'Good evening': 'እንደምን አመሹ',
+  'Wallet': 'ቦርሳ', 'Statistics': 'ስታቲስቲክስ', 'Profile': 'መገለጫ', 'Reports': 'ሪፖርቶች', 'Notifications': 'ማሳወቂያዎች',
+  'Cancel': 'ተው', 'Delete': 'ሰርዝ', 'Save': 'አስቀምጥ', 'Remove': 'አስወግድ', 'Dismiss': 'አስወግድ', 'Skip': 'እለፍ', 'Next': 'ቀጣይ',
+  'Load': 'ጫን', 'Erase': 'ሰርዝ', 'Name': 'ስም', 'Note': 'ማስታወሻ', 'Date': 'ቀን', 'Time': 'ሰዓት', 'Total': 'ጠቅላላ', 'Amount': 'መጠን',
+  'Add': 'ጨምር', 'Pay': 'ይክፈሉ', 'From': 'ከ', 'To': 'ወደ', 'Status': 'ሁኔታ', 'Source': 'ምንጭ', 'Reference': 'ማጣቀሻ', 'Limit': 'ገደብ',
+  'See all': 'ሁሉንም ይመልከቱ', 'Show more': 'ተጨማሪ አሳይ', 'Verify': 'አረጋግጥ', 'ETB': 'ብር', 'Language': 'ቋንቋ', 'LANGUAGE': 'ቋንቋ', 'similar': 'ተመሳሳይ',
+  'Personal': 'የግል', 'Business': 'ንግድ', 'personal': 'የግል', 'business': 'ንግድ',
+  'Day': 'ቀን', 'Week': 'ሳምንት', 'Month': 'ወር', 'Year': 'ዓመት', 'day': 'ቀን', 'week': 'ሳምንት', 'month': 'ወር', 'year': 'ዓመት',
+  'daily': 'በየቀኑ', 'weekly': 'በየሳምንቱ', 'monthly': 'በየወሩ', 'once': 'አንድ ጊዜ',
+  'Today': 'ዛሬ', 'Yesterday': 'ትናንት', 'Tomorrow': 'ነገ', 'AM': 'ጠዋት', 'PM': 'ከሰዓት',
+  'Mon': 'ሰኞ', 'Tue': 'ማክሰ', 'Wed': 'ረቡዕ', 'Thu': 'ሐሙስ', 'Fri': 'ዓርብ', 'Sat': 'ቅዳሜ', 'Sun': 'እሁድ',
+  'Jan': 'ጃንዩ', 'Feb': 'ፌብሩ', 'Mar': 'ማርች', 'Apr': 'ኤፕሪ', 'May': 'ሜይ', 'Jun': 'ጁን', 'Jul': 'ጁላይ', 'Aug': 'ኦገስ', 'Sep': 'ሴፕቴ', 'Oct': 'ኦክቶ', 'Nov': 'ኖቬም', 'Dec': 'ዲሴም',
+
+  // --- home
+  'Total balance': 'ጠቅላላ ቀሪ ሂሳብ', 'Total Balance': 'ጠቅላላ ቀሪ ሂሳብ',
+  'Income': 'ገቢ', 'Expense': 'ወጪ', 'Expenses': 'ወጪ', 'income': 'ገቢ', 'expense': 'ወጪ',
+  'Income · this month': 'ገቢ · በዚህ ወር', 'Expenses · this month': 'ወጪ · በዚህ ወር',
+  'Verified': 'የተረጋገጠ', 'Calculated': 'የተሰላ',
+  'Safe to spend / day': 'በቀን ማውጣት የሚቻል', 'Safe to spend per day': 'በቀን በደህንነት ማውጣት የሚቻል',
+  'Budgets': 'በጀቶች', 'Tap to manage': 'ለማስተካከል ይንኩ',
+  'Transactions history': 'የግብይት ታሪክ', 'Bills coming up': 'የሚመጡ ሂሳቦች',
+  'No transactions yet': 'ገና ምንም ግብይት የለም',
+  'Allow SMS tracking, add a transaction by hand, or try the sample bank messages.': 'የኤስኤምኤስ ክትትልን ይፍቀዱ፣ ግብይት በእጅ ያክሉ፣ ወይም የናሙና የባንክ መልዕክቶችን ይሞክሩ።',
+  'Load sample messages': 'የናሙና መልዕክቶችን ጫን',
+  '{n} bank messages could not be read. Tap to review.': '{n} የባንክ መልዕክቶች ሊነበቡ አልቻሉም። ለመገምገም ይንኩ።',
+  '1 bank message could not be read. Tap to review.': '1 የባንክ መልዕክት ሊነበብ አልቻለም። ለመገምገም ይንኩ።',
+  '{n} day(s) to go': '{n} ቀን(ቶች) ይቀራሉ',
+  'You spent {amount} on {category} this month. Cutting it by 10% would save about {saving}.': 'በዚህ ወር በ{category} {amount} አውጥተዋል። በ10% ቢቀንሱ ወደ {saving} ይቆጥባሉ።',
+
+  // --- statistics
+  'Top spending': 'ከፍተኛ ወጪዎች', 'Top income': 'ከፍተኛ ገቢዎች', 'Biggest transactions': 'ትልልቅ ግብይቶች',
+  'Nothing to chart yet': 'ለማሳየት ምንም መረጃ የለም', 'Total spent': 'ጠቅላላ ወጪ', 'Total received': 'ጠቅላላ የተቀበሉት',
+  'Total spent · {range}': 'ጠቅላላ ወጪ · {range}', 'Total received · {range}': 'ጠቅላላ የተቀበሉት · {range}',
+  '{pct}% · {n} transactions': '{pct}% · {n} ግብይቶች', '{pct}% · 1 transaction': '{pct}% · 1 ግብይት',
+  'No expenses in this {range}.': 'በዚህ {range} ምንም ወጪ የለም።', 'No income in this {range}.': 'በዚህ {range} ምንም ገቢ የለም።',
+
+  // --- wallet and bills
+  'Transactions': 'ግብይቶች', 'Upcoming Bills': 'የሚመጡ ሂሳቦች', 'Bills': 'ሂሳቦች', 'Debts': 'ዕዳዎች', 'Goals': 'ግቦች',
+  'No transactions': 'ምንም ግብይት የለም', 'Add transaction': 'ግብይት ጨምር',
+  'They will appear here as bank SMS arrive or when you add them.': 'የባንክ መልዕክቶች ሲደርሱ ወይም ሲያክሉ እዚህ ይታያሉ።',
+  'No upcoming bills': 'የሚመጡ ሂሳቦች የሉም',
+  'Add rent, electricity or internet to get reminders before they are due.': 'ኪራይ፣ ኤሌክትሪክ ወይም ኢንተርኔት ጨምረው ከመድረሳቸው በፊት ማስታወሻ ያግኙ።',
+  'Add a bill': 'ሂሳብ ጨምር', 'Mark as paid': 'እንደተከፈለ ምልክት አድርግ', 'Delete bill': 'ሂሳቡን ሰርዝ', 'Due': 'የሚከፈልበት', 'Repeats': 'ድግግሞሽ',
+  'PAY FROM': 'የሚከፈለው ከ', 'Add an account first in Wallet → accounts.': 'መጀመሪያ በቦርሳ → አካውንቶች ውስጥ አካውንት ያክሉ።',
+  'New bill': 'አዲስ ሂሳብ', 'Due in (days)': 'የሚከፈለው በ(ቀናት)', 'Save bill': 'ሂሳቡን አስቀምጥ', 'Overdue · {day}': 'ጊዜው አልፏል · {day}',
+  'Due {day}': 'የሚከፈለው {day}', 'No due date': 'የመክፈያ ቀን የለም', 'Electricity': 'ኤሌክትሪክ', 'Internet': 'ኢንተርኔት', 'House rent': 'የቤት ኪራይ',
+  'Bill payment': 'የሂሳብ ክፍያ',
+
+  // --- add transaction and details
+  'Add Transaction': 'ግብይት ጨምር', 'Save transaction': 'ግብይቱን አስቀምጥ', 'CATEGORY': 'ምድብ',
+  'Leave empty to categorize automatically from the name.': 'ባዶ ከተዉት በስሙ መሠረት በራስ-ሰር ይመደባል።',
+  'Paid to': 'የተከፈለለት', 'Received from': 'የተቀበሉት ከ', 'e.g. Tomoca Coffee': 'ለምሳሌ ቶሞካ ቡና', 'e.g. ABC Trading': 'ለምሳሌ ኤቢሲ ንግድ',
+  'ACCOUNT': 'አካውንት', 'DATE': 'ቀን', 'Fee (optional)': 'ክፍያ (አማራጭ)', 'Note (optional)': 'ማስታወሻ (አማራጭ)', 'Add a note': 'ማስታወሻ ጨምር',
+  'Enter an amount greater than zero.': 'ከዜሮ በላይ መጠን ያስገቡ።',
+  'Add an account first (Wallet → accounts).': 'መጀመሪያ አካውንት ያክሉ (ቦርሳ → አካውንቶች)።',
+  'No accounts in this workspace yet. Add one under Wallet → accounts.': 'በዚህ የሥራ ቦታ ገና ምንም አካውንት የለም። በቦርሳ → አካውንቶች ውስጥ ያክሉ።',
+  'From bank SMS': 'ከባንክ መልዕክት',
+  'Transaction Details': 'የግብይት ዝርዝር', 'Transaction details': 'የግብይት ዝርዝር', 'Transaction': 'ግብይት', 'Receipt': 'ደረሰኝ',
+  'Transaction not found': 'ግብይቱ አልተገኘም', 'Bank SMS': 'የባንክ መልዕክት', 'Added by hand': 'በእጅ የተጨመረ',
+  'Own transfer': 'የራስ ዝውውር', 'own transfer': 'የራስ ዝውውር', 'Received': 'የተቀበሉት', 'Spent': 'ያወጡት', 'Fee & VAT': 'ክፍያ እና ተ.እ.ታ',
+  'Balance after (bank)': 'ከግብይቱ በኋላ ቀሪ (ባንክ)', 'Add note': 'ማስታወሻ ጨምር', 'Edit note': 'ማስታወሻ አስተካክል',
+  'Download receipt': 'ደረሰኝ አውርድ', 'Change category': 'ምድብ ቀይር', 'Save note': 'ማስታወሻ አስቀምጥ', 'What was this for?': 'ይህ ለምን ነበር?',
+  'Delete transaction?': 'ግብይቱ ይሰረዝ?', 'This cannot be undone.': 'ይህ ሊመለስ አይችልም።', 'Could not create the receipt': 'ደረሰኙን መፍጠር አልተቻለም',
+  'Category: {name}': 'ምድብ፦ {name}', 'BirrPulse remembers this choice for {name} payments.': 'ብርፐልስ ለ{name} ክፍያዎች ይህን ምርጫ ያስታውሳል።',
+  'fee {amount}': 'ክፍያ {amount}',
+
+  // --- budgets and goals
+  'New budget': 'አዲስ በጀት', 'Edit budget': 'በጀት አስተካክል', 'No budgets yet': 'ገና ምንም በጀት የለም',
+  'Set a daily, weekly or monthly limit to get alerts at 80% and 100%.': 'ዕለታዊ፣ ሳምንታዊ ወይም ወርሃዊ ገደብ ያዘጋጁ፤ በ80% እና 100% ማስጠንቀቂያ ያገኛሉ።',
+  'Create a budget': 'በጀት ፍጠር', 'Overall spending': 'ጠቅላላ ወጪ', 'Overall': 'ጠቅላላ', 'APPLIES TO': 'የሚመለከተው',
+  'Save budget': 'በጀቱን አስቀምጥ', 'Delete budget': 'በጀቱን ሰርዝ',
+  '{amount} left in your monthly budget over {n} day(s)': 'በ{n} ቀን(ቶች) ውስጥ በወርሃዊ በጀትዎ {amount} ቀርቷል',
+  '{amount} tracked balance over {n} day(s)': 'በ{n} ቀን(ቶች) ውስጥ የሚከታተሉት ቀሪ {amount}',
+  '{spent} of {limit} · {rest} left': '{spent} ከ{limit} · {rest} ቀሪ', '{spent} of {limit} · {rest} over': '{spent} ከ{limit} · {rest} ከገደብ በላይ',
+  'Savings goals': 'የቁጠባ ግቦች', 'Save for what matters': 'ለሚያስፈልግዎ ይቆጥቡ',
+  'A phone, a car, school fees. Set a target and see how much to put aside each month.': 'ስልክ፣ መኪና፣ የትምህርት ክፍያ። ግብ ያስቀምጡ እና በየወሩ ምን ያህል መቆጠብ እንዳለብዎ ይመልከቱ።',
+  'Create a goal': 'ግብ ፍጠር', 'New goal': 'አዲስ ግብ', 'Goal': 'ግብ', 'Target amount': 'የግብ መጠን', 'Months to reach it': 'ግቡን ለመድረስ የሚወስድ ወራት',
+  'Create goal': 'ግቡን ፍጠር', 'Add money': 'ገንዘብ ጨምር', 'New phone': 'አዲስ ስልክ',
+  '{saved} of {target}': '{saved} ከ{target}', 'Save {amount} per month to reach it by {date}.': '{date} ለመድረስ በወር {amount} ይቆጥቡ።', 'Add to {name}': 'ወደ {name} ጨምር',
+
+  // --- debts
+  'Debts & credit': 'ዕዳና ብድር', 'Customer & supplier debts': 'የደንበኞችና አቅራቢዎች ዕዳ',
+  'People owe you': 'ሰዎች የሚከፍሉዎት', 'You owe': 'እርስዎ የሚከፍሉት', 'Customers owe you': 'ደንበኞች የሚከፍሉዎት', 'You owe suppliers': 'ለአቅራቢዎች የሚከፍሉት',
+  'Owed to me': 'የሚከፈለኝ', 'I owe': 'የምከፍለው', 'Customers owe me': 'ደንበኞች የሚከፍሉኝ', 'I owe suppliers': 'ለአቅራቢዎች የምከፍለው',
+  'Customer owes me': 'ደንበኛ ይከፍለኛል', 'I owe supplier': 'አቅራቢውን እከፍላለሁ', 'I lent money': 'አበድሬያለሁ', 'I borrowed': 'ተበድሬያለሁ',
+  'Nothing here': 'እዚህ ምንም የለም', 'Money you lend appears here until it is paid back.': 'ያበደሩት ገንዘብ እስኪመለስ ድረስ እዚህ ይታያል።',
+  'Money you borrow appears here with its due date.': 'የተበደሩት ገንዘብ ከመክፈያ ቀኑ ጋር እዚህ ይታያል።',
+  'Add a record': 'መዝገብ ጨምር', 'Settled': 'ተከፍሏል', 'New debt record': 'አዲስ የዕዳ መዝገብ', 'Customer / supplier': 'ደንበኛ / አቅራቢ', 'Person': 'ሰው',
+  'Due in (days, optional)': 'የሚከፈለው በ(ቀናት፣ አማራጭ)', 'Original amount': 'የመጀመሪያ መጠን', 'Paid so far': 'እስካሁን የተከፈለ', 'Outstanding': 'ቀሪ ዕዳ',
+  'Repayment received': 'የተቀበሉት ክፍያ', 'Repayment made': 'የከፈሉት ክፍያ', 'Record repayment': 'ክፍያ መዝግብ', 'Delete record': 'መዝገቡን ሰርዝ',
+  'Emergency loan': 'የአደጋ ጊዜ ብድር',
+
+  // --- reports
+  'Financial report': 'የፋይናንስ ሪፖርት', 'Business report': 'የንግድ ሪፖርት', 'Deposits': 'ወደ ባንክ የገባ', 'Withdrawals': 'ከባንክ የወጣ',
+  'Fees paid': 'የተከፈሉ ክፍያዎች', 'Net': 'ተጣራ', 'Est. profit': 'ግምታዊ ትርፍ', 'Cash flow · last 6 months': 'የገንዘብ ፍሰት · ያለፉት 6 ወራት',
+  'Customers owe': 'ደንበኞች የሚከፍሉ', 'Owed to suppliers': 'ለአቅራቢዎች የሚከፈል',
+  'Estimated profit is income minus expenses from tracked transactions. It is not an accounting statement.': 'ግምታዊ ትርፍ ከተመዘገቡ ግብይቶች ገቢ ሲቀነስ ወጪ ነው። የሂሳብ መግለጫ አይደለም።',
+  'Where the money went': 'ገንዘቡ የት ሄደ', 'No expenses in this period.': 'በዚህ ጊዜ ምንም ወጪ የለም።', 'Export as PDF': 'እንደ PDF ላክ',
+  'Balances shown in the app are verified only when taken from a bank SMS. Reports use tracked transactions.': 'በመተግበሪያው የሚታዩ ቀሪ ሂሳቦች የተረጋገጡ የሚሆኑት ከባንክ መልዕክት ሲወሰዱ ብቻ ነው። ሪፖርቶች የተመዘገቡ ግብይቶችን ይጠቀማሉ።',
+  'Could not create the report': 'ሪፖርቱን መፍጠር አልተቻለም',
+  'Reducing {category} by 10% would save about {saving} a month.': '{category}ን በ10% ቢቀንሱ በወር ወደ {saving} ይቆጥባሉ።',
+
+  // --- notifications and alerts
+  "You're all caught up": 'ሁሉንም ተመልክተዋል', 'Budget limits, bills and repayment reminders will show up here.': 'የበጀት ገደቦች፣ ሂሳቦችና የክፍያ ማስታወሻዎች እዚህ ይታያሉ።',
+  'Money received': 'ገንዘብ ተቀብለዋል', 'Money spent': 'ገንዘብ አውጥተዋል', 'High spending today': 'ዛሬ ከፍተኛ ወጪ',
+  '{name} budget exceeded': 'የ{name} በጀት አልፏል', 'You spent {spent} of your {limit} {period} budget.': 'ከ{period} በጀትዎ {limit} ውስጥ {spent} አውጥተዋል።',
+  '{name} budget at {pct}%': 'የ{name} በጀት {pct}% ደርሷል', '{amount} left in your {period} budget.': 'በ{period} በጀትዎ {amount} ቀርቷል።',
+  '{name} is overdue': '{name} ጊዜው አልፏል', '{amount} was due {n} day(s) ago.': '{amount} ከ{n} ቀን(ቶች) በፊት መከፈል ነበረበት።',
+  '{name} due today': '{name} ዛሬ ይከፈላል', '{name} due in {n} day(s)': '{name} በ{n} ቀን(ቶች) ውስጥ ይከፈላል', '{amount} is coming up.': '{amount} እየመጣ ነው።',
+  'Repay {person}': 'ለ{person} ይክፈሉ', '{person} owes you': '{person} ይከፍሉዎታል', '{who}: overdue': '{who}፦ ጊዜው አልፏል',
+  '{who}: due today': '{who}፦ ዛሬ ይከፈላል', '{who}: due in {n} day(s)': '{who}፦ በ{n} ቀን(ቶች) ውስጥ ይከፈላል', '{amount} outstanding.': '{amount} ቀሪ ነው።',
+  'You spent {amount} today, about {x}x your daily average.': 'ዛሬ {amount} አውጥተዋል፤ ከዕለታዊ አማካይዎ በ{x} እጥፍ ገደማ።',
+
+  // --- accounts, SMS review
+  'Accounts': 'አካውንቶች', 'Account': 'አካውንት', 'Add account': 'አካውንት ጨምር', 'Add an account': 'አካውንት ጨምር', 'No accounts yet': 'ገና ምንም አካውንት የለም',
+  'Bank accounts appear automatically from SMS. Balances from a bank message are marked Verified. Anything you add by hand makes the balance Calculated.': 'የባንክ አካውንቶች ከመልዕክቶች በራስ-ሰር ይታያሉ። ከባንክ መልዕክት የተወሰደ ቀሪ «የተረጋገጠ» ተብሎ ይመዘገባል። በእጅ የሚያክሉት ማንኛውም ነገር ቀሪውን «የተሰላ» ያደርገዋል።',
+  '{ws} · switch': '{ws} · ቀይር', 'Nickname': 'መጠሪያ', 'e.g. Salary account': 'ለምሳሌ የደመወዝ አካውንት', 'e.g. New phone': 'ለምሳሌ አዲስ ስልክ', 'Opening balance (optional)': 'የመጀመሪያ ቀሪ (አማራጭ)', 'Save account': 'አካውንቱን አስቀምጥ',
+  'Messages to review': 'የሚገመገሙ መልዕክቶች',
+  'These messages come from a supported bank but BirrPulse could not read the amount or direction. Add them by hand or dismiss them. Message formats are updated over time.': 'እነዚህ መልዕክቶች ከሚደገፍ ባንክ ቢሆኑም ብርፐልስ መጠኑን ወይም አቅጣጫውን ማንበብ አልቻለም። በእጅ ያክሏቸው ወይም ያስወግዷቸው። የመልዕክት ቅርፀቶች በጊዜ ሂደት ይሻሻላሉ።',
+  'Add by hand': 'በእጅ ጨምር', 'Nothing to review': 'የሚገመገም ነገር የለም',
+  'Commercial Bank of Ethiopia': 'የኢትዮጵያ ንግድ ባንክ', 'Awash Bank': 'አዋሽ ባንክ', 'Dashen Bank': 'ዳሽን ባንክ', 'Bank of Abyssinia': 'አቢሲንያ ባንክ', 'Telebirr': 'ቴሌብር', 'Cash': 'ጥሬ ገንዘብ',
+
+  // --- profile
+  'Money': 'ገንዘብ', 'Automation': 'አውቶሜሽን', 'WORKSPACE': 'የሥራ ቦታ', 'Guest': 'እንግዳ', 'Local mode · data stays on this phone': 'የአካባቢ ሁነታ · መረጃ በዚህ ስልክ ላይ ይቆያል',
+  'Automatic SMS tracking': 'ራስ-ሰር የኤስኤምኤስ ክትትል', 'Reads supported bank messages on this phone': 'በዚህ ስልክ ላይ የሚደገፉ የባንክ መልዕክቶችን ያነባል',
+  'Needs the Android development build': 'የአንድሮይድ ልማት ግንባታ ያስፈልጋል', 'Scan messages now': 'መልዕክቶችን አሁን ቃኝ', 'Scanning...': 'በመቃኘት ላይ...',
+  'Background capture': 'የጀርባ ቀረጻ', 'Bank messages are captured the moment they arrive': 'የባንክ መልዕክቶች እንደደረሱ ወዲያውኑ ይቀረጻሉ',
+  'Tap to stop Android from pausing BirrPulse': 'አንድሮይድ ብርፐልስን እንዳያቆም ለማድረግ ይንኩ',
+  'Smart alerts': 'ብልህ ማንቂያዎች', 'Payday': 'የደመወዝ ቀን', 'Used for safe-to-spend': 'ለቀን ወጪ ስሌት ያገለግላል', 'Day {n} of the month': 'የወሩ {n}ኛ ቀን',
+  'Day of month (1-31)': 'የወሩ ቀን (1-31)', 'Sync now': 'አሁን አመሳስል', 'Syncing...': 'በማመሳሰል ላይ...', 'Last sync {date}': 'መጨረሻ የተመሳሰለው {date}',
+  'Not synced yet': 'ገና አልተመሳሰለም', 'Sign in to back up your data': 'መረጃዎን ለመጠባበቅ ይግቡ', 'Load sample data': 'የናሙና መረጃ ጫን',
+  'Demo transactions, budgets and bills': 'የሙከራ ግብይቶች፣ በጀቶችና ሂሳቦች', 'Load sample data?': 'የናሙና መረጃ ይጫን?',
+  'Adds demo transactions and bills so you can explore the app.': 'መተግበሪያውን ለመመልከት የሙከራ ግብይቶችና ሂሳቦችን ይጨምራል።',
+  'Log out': 'ውጣ', 'Log out?': 'ይውጡ?', 'Logging out...': 'በመውጣት ላይ...', 'Log out anyway': 'ቢሆንም ውጣ', 'Could not back up': 'መጠባበቅ አልተቻለም',
+  'Your data is backed up to your account and comes back when you sign in again. This phone\'s copy will be removed.': 'መረጃዎ በመለያዎ ላይ ተጠባብቋል፤ እንደገና ሲገቡ ይመለሳል። በዚህ ስልክ ላይ ያለው ቅጂ ይወገዳል።',
+  'You seem to be offline. Logging out now loses changes that are not backed up yet.': 'ከመስመር ውጭ ይመስላሉ። አሁን ከወጡ ገና ያልተጠባበቁ ለውጦች ይጠፋሉ።', 'Erase all local data': 'ሁሉንም የአካባቢ መረጃ ሰርዝ', 'Erase all data?': 'ሁሉም መረጃ ይሰረዝ?',
+  'This removes every transaction, budget and goal on this phone.': 'በዚህ ስልክ ላይ ያሉ ሁሉንም ግብይቶች፣ በጀቶችና ግቦች ያስወግዳል።',
+  'Scan finished': 'ቅኝት ተጠናቀቀ', '{added} new transaction(s), {unparsed} need review.': '{added} አዳዲስ ግብይት(ቶች)፣ {unparsed} ግምገማ ይፈልጋሉ።',
+  'SMS tracking is off or unavailable.': 'የኤስኤምኤስ ክትትል ጠፍቷል ወይም አይገኝም።', 'Not available here': 'እዚህ አይገኝም',
+  'Reading SMS needs the Android development build of BirrPulse. You can try sample messages from the home screen.': 'መልዕክቶችን ማንበብ የብርፐልስ የአንድሮይድ ልማት ግንባታ ያስፈልገዋል። ከመነሻ ገጹ የናሙና መልዕክቶችን መሞከር ይችላሉ።',
+  'Permission needed': 'ፈቃድ ያስፈልጋል', 'Allow SMS access in system settings to track bank messages automatically.': 'የባንክ መልዕክቶችን በራስ-ሰር ለመከታተል በሲስተም ቅንብሮች የኤስኤምኤስ መዳረሻ ይፍቀዱ።',
+  'Synced': 'ተመሳስሏል', 'Sent {pushed}, received {pulled}.': 'ተልኳል {pushed}፣ ተቀብሏል {pulled}።', 'A sync is already running.': 'ማመሳሰል እየተካሄደ ነው።', 'Sync failed': 'ማመሳሰል አልተሳካም',
+
+  // --- onboarding
+  'Your bank SMS, organised': 'የባንክ መልዕክቶችዎ፣ በሥርዓት',
+  'BirrPulse reads supported bank messages on your phone and turns them into income, expenses, deposits and withdrawals.': 'ብርፐልስ በስልክዎ ላይ የሚደገፉ የባንክ መልዕክቶችን አንብቦ ወደ ገቢ፣ ወጪ፣ ተቀማጭና ወጪ የተደረገ ገንዘብ ይቀይራቸዋል።',
+  'See where every birr goes': 'እያንዳንዱ ብር የት እንደሚሄድ ይመልከቱ',
+  'Budgets, savings goals and clear reports show what you earn, what you spend and what is left.': 'በጀቶች፣ የቁጠባ ግቦችና ግልጽ ሪፖርቶች የሚያገኙትን፣ የሚያወጡትንና የሚቀረውን ያሳያሉ።',
+  'Debts and business, too': 'ዕዳና ንግድም',
+  'Track money you borrowed or lent, bills coming up, and keep business and personal money apart.': 'የተበደሩትንና ያበደሩትን ገንዘብ፣ የሚመጡ ሂሳቦችን ይከታተሉ፤ የንግድና የግል ገንዘብን ለያይተው ያስቀምጡ።',
+  'Set up my app': 'መተግበሪያዬን አዘጋጅ', 'Skip intro': 'መግቢያውን እለፍ', 'Set up BirrPulse': 'ብርፐልስን አዘጋጁ', 'Two quick steps so the app fits you.': 'መተግበሪያው እንዲስማማዎት ሁለት ፈጣን ደረጃዎች።',
+  'Your first name': 'የመጀመሪያ ስምዎ', 'I AM A...': 'እኔ...', 'Student': 'ተማሪ', 'Make allowance last': 'ወጪዎን እስከሚቀጥለው ድረስ ያቆዩ',
+  'Employee': 'ተቀጣሪ', 'Stretch salary to payday': 'ደመወዝን እስከ ቀጣዩ ክፍያ ያዳርሱ', 'Business owner': 'የንግድ ባለቤት', 'Cash flow and debts': 'የገንዘብ ፍሰትና ዕዳ',
+  'Payday (day of month, optional)': 'የደመወዝ ቀን (የወሩ ቀን፣ አማራጭ)', 'e.g. 25': 'ለምሳሌ 25', 'SMS tracking is on': 'የኤስኤምኤስ ክትትል በርቷል',
+  'Only messages from supported banks are read, on your phone. Personal messages are ignored. You can decline and add transactions by hand.': 'የሚነበቡት ከሚደገፉ ባንኮች የመጡ መልዕክቶች ብቻ ናቸው፣ በስልክዎ ላይ። የግል መልዕክቶች ችላ ይባላሉ። እምቢ ማለትና ግብይቶችን በእጅ ማስገባት ይችላሉ።',
+  'Allow SMS access': 'የኤስኤምኤስ መዳረሻ ፍቀድ', 'Get started': 'ጀምር', 'SMS tracking needs an Android development build': 'የኤስኤምኤስ ክትትል የአንድሮይድ ልማት ግንባታ ያስፈልገዋል',
+  'In Expo Go or on iOS, you can still try BirrPulse with sample messages or add transactions manually.': 'በExpo Go ወይም በiOS ላይ አሁንም በናሙና መልዕክቶች መሞከር ወይም ግብይቶችን በእጅ ማስገባት ይችላሉ።',
+  'Use sample messages': 'የናሙና መልዕክቶችን ተጠቀም', 'Permission not granted': 'ፈቃድ አልተሰጠም',
+  'You can still add transactions by hand and turn on SMS tracking later in Profile.': 'አሁንም ግብይቶችን በእጅ ማስገባትና የኤስኤምኤስ ክትትልን በኋላ በመገለጫ ማብራት ይችላሉ።',
+
+  // --- sign in
+  'Welcome back': 'እንኳን ደህና መጡ', 'Sign in to sync your money across devices.': 'ገንዘብዎን በመሣሪያዎች መካከል ለማመሳሰል ይግቡ።',
+  'Email or phone': 'ኢሜይል ወይም ስልክ', 'Password': 'የይለፍ ቃል', 'Your password': 'የይለፍ ቃልዎ', 'Sign in': 'ግባ', 'Sign in with an email code': 'በኢሜይል ኮድ ግባ',
+  'New to BirrPulse?': 'ለብርፐልስ አዲስ ነዎት?', 'Create account': 'መለያ ፍጠር', 'I already have an account': 'መለያ አለኝ', 'Continue without an account': 'ያለ መለያ ቀጥል',
+  'Your data stays on this phone. You can create an account later to back it up.': 'መረጃዎ በዚህ ስልክ ላይ ይቆያል። በኋላ መለያ ፈጥረው መጠባበቅ ይችላሉ።',
+  'Enter your email or phone and a password of at least 6 characters.': 'ኢሜይል ወይም ስልክዎንና ቢያንስ 6 ቁምፊ ያለው የይለፍ ቃል ያስገቡ።',
+  'Track every birr automatically, safely.': 'እያንዳንዱን ብር በራስ-ሰር እና በደህንነት ይከታተሉ።', 'Full name': 'ሙሉ ስም', 'Your name': 'ስምዎ', 'At least 8 characters': 'ቢያንስ 8 ቁምፊ',
+  'Already have an account?': 'መለያ አለዎት?', 'Enter your name, an email or phone, and a password of at least 8 characters.': 'ስምዎን፣ ኢሜይል ወይም ስልክዎንና ቢያንስ 8 ቁምፊ ያለው የይለፍ ቃል ያስገቡ።',
+  'Sign in with email': 'በኢሜይል ግባ', 'No password needed. We send you a 6 digit code.': 'የይለፍ ቃል አያስፈልግም። ባለ 6 አሃዝ ኮድ እንልክልዎታለን።',
+  'Check your email': 'ኢሜይልዎን ይመልከቱ', 'We sent a 6 digit code to {email}.': 'ባለ 6 አሃዝ ኮድ ወደ {email} ልከናል።', 'Email': 'ኢሜይል',
+  'Your name (new accounts)': 'ስምዎ (ለአዲስ መለያ)', 'Send code': 'ኮድ ላክ', 'Resend code': 'ኮዱን እንደገና ላክ', 'Resend code in {s}s': 'ኮዱን እንደገና ለመላክ {s} ሰከንድ',
+  'Change email': 'ኢሜይል ቀይር', 'Check your spam folder if you do not see it. The code works once and expires in 5 minutes.': 'ካላዩት የአይፈለጌ መልዕክት አቃፊዎን ይመልከቱ። ኮዱ አንድ ጊዜ ብቻ ይሠራል፤ በ5 ደቂቃ ያልቃል።',
+  'Use a password instead': 'በምትኩ የይለፍ ቃል ተጠቀም', 'Enter a valid email address.': 'ትክክለኛ ኢሜይል ያስገቡ።',
+
+  // --- categories
+  'Food': 'ምግብ', 'Transport': 'ትራንስፖርት', 'Shopping': 'ሸመታ', 'Rent': 'ኪራይ', 'Airtime & data': 'የአየር ሰዓትና ዳታ', 'Health': 'ጤና', 'Education': 'ትምህርት',
+  'Entertainment': 'መዝናኛ', 'Stock & supplies': 'ክምችትና አቅርቦት', 'Supplier payments': 'የአቅራቢ ክፍያዎች', 'Staff': 'ሠራተኞች', 'Bank fees': 'የባንክ ክፍያዎች',
+  'Other': 'ሌላ', 'Salary': 'ደመወዝ', 'Business income': 'የንግድ ገቢ', 'Allowance': 'አበል', 'Gift': 'ስጦታ', 'Other income': 'ሌላ ገቢ',
+};
+
+/** Regex based translations for strings that cannot be listed one by one. */
+export const AM_PATTERNS: Array<[RegExp, (m: RegExpExecArray) => string]> = [];
