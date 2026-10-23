@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { colors, radius } from '@/theme';
 import { PressableScale } from './PressableScale';
 import { useLang, tr } from '@/i18n';
@@ -56,12 +55,12 @@ export function Screen({ title, back = true, right, header, children, scroll = t
       <HeaderScene style={{ paddingTop: insets.top + 10, paddingBottom: header ? 56 : 44 }}>
         <View style={styles.titleRow}>
           {back ? <IconButton name="chevron-back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))} /> : <View style={{ width: 40 }} />}
-          <Animated.Text entering={FadeIn.duration(350)} style={styles.title} numberOfLines={1}>{tr(title ?? '')}</Animated.Text>
+          <Text style={styles.title} numberOfLines={1}>{tr(title ?? '')}</Text>
           <View style={{ minWidth: 40, alignItems: 'flex-end' }}>{right}</View>
         </View>
         {header}
       </HeaderScene>
-      <Animated.View entering={FadeInDown.duration(380).springify().damping(20)} style={styles.sheet}>
+      <View style={styles.sheet}>
         {scroll ? (
           <ScrollView
             refreshControl={refreshControl}
@@ -73,7 +72,7 @@ export function Screen({ title, back = true, right, header, children, scroll = t
         ) : (
           <View style={[{ flex: 1 }, contentStyle]}>{children}</View>
         )}
-      </Animated.View>
+      </View>
     </View>
   );
 }

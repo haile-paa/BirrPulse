@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Screen, IconButton } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -34,17 +33,17 @@ export default function Budgets() {
 
   return (
     <Screen title="Budgets" right={<IconButton name="add" onPress={() => setEdit('new')} />}>
-      <Animated.View entering={FadeInDown.springify()} style={styles.hero}>
+      <View style={styles.hero}>
         <Text style={styles.heroLabel}>Safe to spend per day</Text>
         <Text style={styles.heroValue}>{formatBirr(safe.perDay)}</Text>
         <Text style={styles.heroSub}>{t(safe.fromBudget ? '{amount} left in your monthly budget over {n} day(s)' : '{amount} tracked balance over {n} day(s)', { amount: formatBirr(Math.max(0, safe.remaining)), n: safe.days })}</Text>
-      </Animated.View>
+      </View>
       {budgets.length === 0 ? <EmptyState icon="pie-chart-outline" title="No budgets yet" text="Set a daily, weekly or monthly limit to get alerts at 80% and 100%." action="Create a budget" onAction={() => setEdit('new')} /> : null}
       {budgets.map((b, i) => {
         const u = budgetUsage(b, txs);
         const cat = b.categoryId ? categoryById(s.categories, b.categoryId) : null;
         return (
-          <Animated.View key={b.id} layout={LinearTransition.springify()} entering={FadeInDown.delay(i * 70).springify().damping(18)}>
+          <View key={b.id}>
             <PressableScale onPress={() => setEdit(b)} scaleTo={0.98} style={styles.card}>
               <View style={styles.top}>
                 <CategoryIcon icon={cat?.icon ?? 'wallet'} color={cat?.color ?? colors.primary} size={42} />
@@ -57,7 +56,7 @@ export default function Budgets() {
               <ProgressBar pct={u.pct} />
               <Text style={styles.line}>{t(u.remaining >= 0 ? '{spent} of {limit} · {rest} left' : '{spent} of {limit} · {rest} over', { spent: formatBirr(u.spent, { symbol: false }), limit: formatBirr(u.limit), rest: formatBirr(Math.abs(u.remaining)) })}</Text>
             </PressableScale>
-          </Animated.View>
+          </View>
         );
       })}
       <BudgetSheet edit={edit} onClose={() => setEdit(null)} />

@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { colors } from '@/theme';
 import { formatBirr } from '@/lib/money';
@@ -25,7 +24,7 @@ export function TxRow({ tx, categories, accounts, index = 0, onPress }: Props) {
   const acc = accounts?.find((a) => a.id === tx.accountId);
   const title = tx.counterparty || cat.name;
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 45).springify().damping(18)}>
+    <View>
       <PressableScale onPress={onPress ?? (() => router.push({ pathname: '/transaction/[id]', params: { id: tx.id } }))} scaleTo={0.98} style={styles.row}>
         {internal ? (
           <View style={styles.internal}><Ionicons name="swap-horizontal" size={20} color={colors.muted} /></View>
@@ -45,7 +44,7 @@ export function TxRow({ tx, categories, accounts, index = 0, onPress }: Props) {
           {tx.fee > 0 ? <Text style={styles.fee}>{t('fee {amount}', { amount: formatBirr(tx.fee, { symbol: false }) })}</Text> : null}
         </View>
       </PressableScale>
-    </Animated.View>
+    </View>
   );
 }
 

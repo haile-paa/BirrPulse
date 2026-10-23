@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Screen } from '@/components/Header';
@@ -16,7 +15,7 @@ import { toMinor } from '@/lib/money';
 import { addDays, fmtDate, startOfDay } from '@/lib/format';
 import { bankByCode } from '@/sms/banks';
 import { useApp } from '@/store/useApp';
-import { categorize } from '@/lib/categories';
+import { categorize, pickable } from '@/lib/categories';
 import { useLang, tr } from '@/i18n';
 
 export default function AddTransaction() {
@@ -34,10 +33,11 @@ export default function AddTransaction() {
   const [accId, setAccId] = useState<string | null>(accounts[0]?.id ?? null);
   const [dayOffset, setDayOffset] = useState(0);
   const [err, setErr] = useState<string | null>(null);
+  const [debt, setDebt] = useState(false);
 
   const kind = type === 'Expense' ? 'expense' : 'income';
   const cats = useMemo(() => {
-    const list = s.categories.filter((c) => c.kind === kind);
+    const list = pickable(s.categories).filter((c) => c.kind === kind);
     const business = new Set(['stock', 'supplier', 'staff', 'business_inc']);
     return ws === 'business' ? [...list.filter((c) => business.has(c.id)), ...list.filter((c) => !business.has(c.id))] : list.filter((c) => !['stock', 'supplier', 'staff', 'business_inc'].includes(c.id));
   }, [s.categories, kind, ws]);
@@ -48,32 +48,41 @@ export default function AddTransaction() {
     if (a <= 0) { setErr('Enter an amount greater than zero.'); return; }
     const acc = accId ?? accounts[0]?.id;
     if (!acc) { setErr('Add an account first (Wallet → accounts).'); return; }
+    if (debt && !name.trim()) { setErr(kind === 'expense' ? 'Enter who you lent the money to.' : 'Enter who you borrowed the money from.'); return; }
     const categoryId = chosenCat ?? categorize({ type: kind, channel: 'other', counterparty: name, note, learned: s.learned });
     const when = addDays(startOfDay(Date.now()), -dayOffset) + (dayOffset === 0 ? Date.now() - startOfDay(Date.now()) : 12 * 3600000);
-    s.addTransaction({
+    const tx = s.addTransaction({
       accountId: acc, type: kind, channel: 'other', amount: a, fee: toMinor(fee), categoryId, counterparty: name.trim(), note: note.trim() || undefined,
       occurredAt: when, incomeKind: kind === 'income' ? (categoryId === 'salary' ? 'salary' : categoryId === 'business_inc' ? 'business' : categoryId === 'allowance' ? 'allowance' : 'other') : undefined,
     });
+    if (debt) s.moveToDebt(tx.id, { person: name.trim() }); // a loan is listed under Debts and is not counted as spending or income
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    const fresh = s.refreshAlerts();
-    void fresh;
+    s.refreshAlerts();
     router.back();
   };
 
   return (
     <Screen title="Add Transaction" scroll>
-      <Segmented options={['Expense', 'Income'] as const} value={type} onChange={(v) => { setType(v); setCat(null); }} />
+      <Segmented options={['Expense', 'Income'] as const} value={type} onChange={(v) => { setType(v); setCat(null); setDebt(false); }} />
       <View style={styles.amountBox}>
         <Text style={styles.cur}>ETB</Text>
         <Field label="" value={amount} onChangeText={(t) => { setAmount(t.replace(/[^0-9.]/g, '')); setErr(null); }} keyboardType="decimal-pad" placeholder="0.00" autoFocus style={{ flex: 1, marginBottom: 0 }} />
       </View>
-      {err ? <Animated.Text entering={FadeIn} style={styles.err}>{tr(err)}</Animated.Text> : null}
+      {err ? <Text style={styles.err}>{tr(err)}</Text> : null}
 
       <Text style={styles.label}>CATEGORY</Text>
       <CategoryPicker categories={cats} value={chosenCat} onChange={setCat} />
       {!chosenCat ? <Text style={styles.hint}>Leave empty to categorize automatically from the name.</Text> : null}
 
       <Field label={kind === 'expense' ? 'Paid to' : 'Received from'} value={name} onChangeText={setName} placeholder={kind === 'expense' ? 'e.g. Tomoca Coffee' : 'e.g. ABC Trading'} style={{ marginTop: 14 }} />
+
+      <View style={styles.debtRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.debtTitle}>{kind === 'expense' ? 'I lent this money' : 'I borrowed this money'}</Text>
+          <Text style={styles.hint}>{kind === 'expense' ? 'It goes to Debts (owed to me) and is not counted as spending.' : 'It goes to Debts (I owe) and is not counted as income.'}</Text>
+        </View>
+        <Switch value={debt} onValueChange={setDebt} trackColor={{ true: colors.primary, false: '#D5DDDB' }} thumbColor="#fff" />
+      </View>
 
       <Text style={styles.label}>ACCOUNT</Text>
       <View style={styles.chips}>
@@ -88,7 +97,7 @@ export default function AddTransaction() {
       <Text style={styles.label}>DATE</Text>
       <View style={styles.dateRow}>
         <PressableScale onPress={() => setDayOffset(dayOffset + 1)} style={styles.dateBtn}><Ionicons name="chevron-back" size={20} color={colors.primaryDark} /></PressableScale>
-        <Animated.Text key={dayOffset} entering={FadeInDown.duration(160)} style={styles.dateText}>{dayOffset === 0 ? tr('Today') : dayOffset === 1 ? tr('Yesterday') : fmtDate(addDays(startOfDay(Date.now()), -dayOffset))}</Animated.Text>
+        <Text style={styles.dateText}>{dayOffset === 0 ? tr('Today') : dayOffset === 1 ? tr('Yesterday') : fmtDate(addDays(startOfDay(Date.now()), -dayOffset))}</Text>
         <PressableScale onPress={() => setDayOffset(Math.max(0, dayOffset - 1))} style={[styles.dateBtn, dayOffset === 0 && { opacity: 0.35 }]}><Ionicons name="chevron-forward" size={20} color={colors.primaryDark} /></PressableScale>
       </View>
 
@@ -104,7 +113,9 @@ const styles = StyleSheet.create({
   cur: { fontSize: 22, fontWeight: '800', color: colors.primaryDark, marginTop: 4 },
   err: { color: colors.expense, fontSize: 13, marginBottom: 6 },
   label: { fontSize: 11, fontWeight: '700', color: colors.muted, letterSpacing: 0.8, marginTop: 16, marginBottom: 8 },
-  hint: { fontSize: 12, color: colors.muted, marginTop: 8 },
+  hint: { fontSize: 12, color: colors.muted, marginTop: 4 },
+  debtRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, padding: 12, borderRadius: 14, backgroundColor: colors.primarySoft },
+  debtTitle: { fontSize: 14, fontWeight: '700', color: colors.text },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 14, height: 38, borderRadius: 19, backgroundColor: colors.primarySoft, justifyContent: 'center' },
   chipOn: { backgroundColor: colors.primaryDark },

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -13,8 +12,10 @@ import { Segmented } from '@/components/Segmented';
 import { BottomSheet } from '@/components/BottomSheet';
 import { Field } from '@/components/Field';
 import { Button } from '@/components/Button';
+import { CodeInput } from '@/components/CodeInput';
 import { colors, radius } from '@/theme';
 import { fmtDate } from '@/lib/format';
+import { formatBirr, toMinor, toBirr } from '@/lib/money';
 import { useApp } from '@/store/useApp';
 import { useAuth } from '@/store/auth';
 import { isSmsSupported, requestSmsPermission } from '@/sms/smsService';
@@ -32,8 +33,18 @@ export default function Profile() {
   const s = useApp();
   const auth = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
-  const [paydayOpen, setPaydayOpen] = useState(false);
+  const [incomeOpen, setIncomeOpen] = useState(false);
+  const [source, setSource] = useState(s.settings.incomeSource);
+  const [amount, setAmount] = useState(s.settings.incomeAmount ? String(toBirr(s.settings.incomeAmount)) : '');
   const [payday, setPayday] = useState(s.settings.payday ? String(s.settings.payday) : '');
+  const [mailOpen, setMailOpen] = useState(false);
+  const [mail, setMail] = useState('');
+  const [mailStep, setMailStep] = useState<'email' | 'code'>('email');
+  const [mailBusy, setMailBusy] = useState(false);
+  const [mailErr, setMailErr] = useState<string | null>(null);
+  const role = s.settings.userType;
+  const employee = role === 'employee';
+  const roleLabel = role === 'business' ? 'Business owner' : role === 'employee' ? 'Employee' : role === 'student' ? 'Student' : '';
   const name = auth.user?.name ?? (s.settings.userName || 'BirrPulse');
   const unread = s.notifications.filter((n) => !n.read).length;
 
@@ -48,6 +59,31 @@ export default function Profile() {
     await auth.logout();          // signed out: the tabs layout now redirects to the intro
     useApp.getState().resetAll(); // remove this phone's copy of the data (it stays in the account)
     setBusy(null);
+  };
+
+  /** Wipes the money data on this phone but keeps the account, the role and the salary answers. */
+  const eraseData = () => {
+    const keep = { ...useApp.getState().settings };
+    s.resetAll();
+    useApp.setState((st) => ({ settings: { ...st.settings, userType: keep.userType, workspace: keep.workspace, incomeSource: keep.incomeSource, incomeAmount: keep.incomeAmount, payday: keep.payday, userName: keep.userName, ownerId: keep.ownerId, profileSynced: keep.profileSynced, onboarded: keep.onboarded } }));
+    useApp.getState().saveAccount({ bankCode: 'CASH', nickname: 'Cash', workspace: keep.workspace });
+  };
+
+  const openMail = () => { setMail(''); setMailStep('email'); setMailErr(null); setMailOpen(true); };
+  const sendMailCode = async () => {
+    if (!/^\S+@\S+\.\S+$/.test(mail.trim())) { setMailErr('Enter a valid email address.'); return; }
+    setMailBusy(true); setMailErr(null);
+    try { await auth.requestRecoveryEmail(mail); setMailStep('code'); } catch (e) { setMailErr((e as Error).message); } finally { setMailBusy(false); }
+  };
+  const confirmMail = async (code: string) => {
+    setMailBusy(true); setMailErr(null);
+    try { await auth.confirmRecoveryEmail(code); setMailOpen(false); alertT('Recovery email saved', 'You can now reset your password by email.'); } catch (e) { setMailErr((e as Error).message); } finally { setMailBusy(false); }
+  };
+
+  const saveIncome = () => {
+    const pd = parseInt(payday, 10);
+    s.setProfile({ incomeSource: source.trim(), incomeAmount: toMinor(amount) > 0 ? toMinor(amount) : null, payday: pd >= 1 && pd <= 31 ? pd : null });
+    setIncomeOpen(false);
   };
 
   const confirmLogout = () => alertT(
@@ -85,17 +121,17 @@ export default function Profile() {
       { icon: 'alert-circle', label: 'Messages to review', badge: s.unparsed.length, onPress: () => router.push('/sms-review') },
       { icon: 'notifications', label: 'Notifications', badge: unread, onPress: () => router.push('/notifications') },
       { icon: 'notifications-circle', label: 'Smart alerts', right: <Switch value={s.settings.notificationsOn} onValueChange={(v) => s.setSettings({ notificationsOn: v })} trackColor={{ true: colors.primary, false: '#D5DDDB' }} thumbColor="#fff" /> },
-      { icon: 'calendar', label: 'Payday', sub: s.settings.payday ? t('Day {n} of the month', { n: s.settings.payday }) : 'Used for safe-to-spend', onPress: () => setPaydayOpen(true) },
+      ...(role === 'employee' || role === 'student' ? [{ icon: (employee ? 'briefcase' : 'wallet') as keyof typeof Ionicons.glyphMap, label: employee ? 'Salary & payday' : 'Allowance & payday', sub: s.settings.payday ? `${s.settings.incomeSource ? s.settings.incomeSource + ' · ' : ''}${s.settings.incomeAmount ? formatBirr(s.settings.incomeAmount, { compact: true }) + ' · ' : ''}${t('Day {n} of the month', { n: s.settings.payday })}` : 'Tap to set', onPress: () => setIncomeOpen(true) }] : []),
     ] },
     { title: 'Account', rows: [
       { icon: 'cloud-done', label: busy === 'sync' ? 'Syncing...' : 'Sync now', sub: s.settings.lastSync ? t('Last sync {date}', { date: fmtDate(s.settings.lastSync) }) : 'Not synced yet', onPress: async () => { setBusy('sync'); try { const r = await syncNow(); alertT('Synced', r ? t('Sent {pushed}, received {pulled}.', { pushed: r.pushed, pulled: r.pulled }) : 'A sync is already running.'); } catch (e) { alertT('Sync failed', (e as Error).message); } finally { setBusy(null); } } },
+      { icon: 'mail', label: 'Recovery email', sub: auth.user?.email ?? 'Add one so you can reset a forgotten password', onPress: openMail },
       { icon: 'flask', label: 'Load sample data', sub: 'Demo transactions, budgets and bills', onPress: () => alertT('Load sample data?', 'Adds demo transactions and bills so you can explore the app.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Load', onPress: () => s.loadDemo() }]) },
       { icon: 'log-out', label: busy === 'logout' ? 'Logging out...' : 'Log out', danger: true, onPress: confirmLogout },
-      { icon: 'trash', label: 'Erase all local data', danger: true, onPress: () => alertT('Erase all data?', 'This removes every transaction, budget and goal on this phone.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Erase', style: 'destructive', onPress: () => { s.resetAll(); router.replace('/'); } }]) },
+      { icon: 'trash', label: 'Erase all local data', danger: true, onPress: () => alertT('Erase all data?', 'This removes every transaction, budget and goal on this phone.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Erase', style: 'destructive', onPress: () => eraseData() }]) },
     ] },
   ];
 
-  let n = 0;
   return (
     <View style={{ flex: 1, backgroundColor: colors.primary }}>
       <StatusBar style="light" />
@@ -103,13 +139,15 @@ export default function Profile() {
         <Text style={styles.title}>Profile</Text>
       </HeaderScene>
       <ScrollView style={styles.sheet} contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={ZoomIn.springify().damping(13)} style={styles.avatar}><Text style={styles.avatarText}>{name.slice(0, 1).toUpperCase()}</Text></Animated.View>
+        <View style={styles.avatar}><Text style={styles.avatarText}>{name.slice(0, 1).toUpperCase()}</Text></View>
         <Text style={styles.name}>{name}</Text>
-        <Text style={styles.handle}>{auth.user?.email ?? auth.user?.phone ?? ''}</Text>
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <Text style={styles.wsLabel}>WORKSPACE</Text>
-          <Segmented options={['Personal', 'Business'] as const} value={s.settings.workspace === 'business' ? 'Business' : 'Personal'} onChange={(v) => s.setSettings({ workspace: v === 'Business' ? 'business' : 'personal' })} />
-        </View>
+        <Text style={styles.handle}>{auth.user?.phone ?? auth.user?.email ?? ''}</Text>
+        {roleLabel ? (
+          <View style={styles.role}>
+            <Ionicons name="lock-closed" size={13} color={colors.primaryDark} />
+            <Text style={styles.roleText}>{roleLabel}</Text>
+          </View>
+        ) : null}
         <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
           <Text style={styles.wsLabel}>LANGUAGE</Text>
           <Segmented options={['English', 'አማርኛ'] as const} value={s.settings.language === 'am' ? 'አማርኛ' : 'English'} onChange={(v) => s.setSettings({ language: v === 'አማርኛ' ? 'am' : 'en' })} />
@@ -118,7 +156,7 @@ export default function Profile() {
           <View key={sec.title} style={{ paddingHorizontal: 20, marginTop: 18 }}>
             <Text style={styles.wsLabel}>{sec.title.toUpperCase()}</Text>
             {sec.rows.map((r) => (
-              <Animated.View key={r.label} entering={FadeInDown.delay(n++ * 35).springify().damping(18)}>
+              <View key={r.label}>
                 <PressableScale onPress={r.onPress} disabled={!r.onPress} haptic={!!r.onPress} scaleTo={0.98} style={styles.row}>
                   <View style={[styles.rowIcon, r.danger && { backgroundColor: '#FDECEC' }]}><Ionicons name={r.icon} size={19} color={r.danger ? colors.expense : colors.primaryDark} /></View>
                   <View style={{ flex: 1 }}>
@@ -128,15 +166,34 @@ export default function Profile() {
                   {r.badge ? <View style={styles.badge}><Text style={styles.badgeText}>{r.badge}</Text></View> : null}
                   {r.right ?? (r.onPress && !r.danger ? <Ionicons name="chevron-forward" size={18} color="#B5C0BE" /> : null)}
                 </PressableScale>
-              </Animated.View>
+              </View>
             ))}
           </View>
         ))}
         <Text style={styles.ver}>BirrPulse 1.0.0</Text>
       </ScrollView>
-      <BottomSheet visible={paydayOpen} onClose={() => setPaydayOpen(false)} title="Payday">
-        <Field label="Day of month (1-31)" value={payday} onChangeText={setPayday} keyboardType="number-pad" placeholder="e.g. 25" />
-        <Button title="Save" onPress={() => { const d = parseInt(payday, 10); s.setSettings({ payday: d >= 1 && d <= 31 ? d : null }); setPaydayOpen(false); }} />
+      <BottomSheet visible={mailOpen} onClose={() => setMailOpen(false)} title="Recovery email">
+        {mailStep === 'email' ? (
+          <>
+            <Text style={styles.sheetHint}>{t('We email a code to confirm it. If you forget your password, the reset code is sent to this email.', {})}</Text>
+            <Field label="Email" value={mail} onChangeText={setMail} keyboardType="email-address" autoCapitalize="none" placeholder="you@example.com" />
+            {mailErr ? <Text style={styles.sheetErr}>{t(mailErr, {})}</Text> : null}
+            <Button title="Send code" onPress={sendMailCode} loading={mailBusy} />
+          </>
+        ) : (
+          <>
+            <Text style={styles.sheetHint}>{t('Enter the 6 digit code sent to {email}.', { email: mail.trim() })}</Text>
+            <CodeInput onComplete={confirmMail} disabled={mailBusy} />
+            {mailErr ? <Text style={styles.sheetErr}>{t(mailErr, {})}</Text> : null}
+          </>
+        )}
+      </BottomSheet>
+
+      <BottomSheet visible={incomeOpen} onClose={() => setIncomeOpen(false)} title={employee ? 'Salary & payday' : 'Allowance & payday'}>
+        <Field label={employee ? 'Company you work for' : 'Who sends it'} value={source} onChangeText={setSource} autoCapitalize="words" placeholder={employee ? 'e.g. ABC Trading' : 'e.g. Family'} />
+        <Field label={employee ? 'Monthly salary' : 'Monthly allowance'} value={amount} onChangeText={(v) => setAmount(v.replace(/[^0-9.]/g, ''))} keyboardType="decimal-pad" prefix="ETB" placeholder="0.00" />
+        <Field label="Payday (day of the month)" value={payday} onChangeText={(v) => setPayday(v.replace(/\D/g, '').slice(0, 2))} keyboardType="number-pad" placeholder="e.g. 25" />
+        <Button title="Save" onPress={saveIncome} />
       </BottomSheet>
     </View>
   );
@@ -148,6 +205,10 @@ const styles = StyleSheet.create({
   avatar: { alignSelf: 'center', marginTop: -46, width: 92, height: 92, borderRadius: 46, backgroundColor: colors.primaryDark, borderWidth: 5, borderColor: '#fff', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 10, elevation: 6 },
   avatarText: { color: '#fff', fontSize: 36, fontWeight: '800' },
   name: { textAlign: 'center', fontSize: 20, fontWeight: '800', color: colors.text, marginTop: 10 },
+  sheetHint: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  sheetErr: { color: colors.expense, fontSize: 13, marginBottom: 8 },
+  role: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.primarySoft, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, marginTop: 10 },
+  roleText: { fontSize: 12.5, fontWeight: '700', color: colors.primaryDark },
   handle: { textAlign: 'center', color: colors.primary, fontSize: 13, marginTop: 2 },
   wsLabel: { fontSize: 11, fontWeight: '700', color: colors.muted, letterSpacing: 0.8, marginBottom: 6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },

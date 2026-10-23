@@ -1,5 +1,10 @@
 package handlers
 
+// DISABLED: tests for the email sign-in codes. BirrPulse no longer asks for an email: people sign in with a phone number and a code that
+// arrives as an app notification (see phoneauth.go). This code is kept, commented out, so email verification can
+// be switched back on later: remove the comment markers here, in cmd/server/main.go and in the mobile app.
+
+/*
 import (
 	"regexp"
 	"testing"
@@ -43,3 +48,4 @@ func TestNormalizeEmail(t *testing.T) {
 		}
 	}
 }
+*/

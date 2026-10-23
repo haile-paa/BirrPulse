@@ -1,5 +1,10 @@
 package handlers
 
+// DISABLED: email sign-in codes. BirrPulse no longer asks for an email: people sign in with a phone number and a code that
+// arrives as an app notification (see phoneauth.go). This code is kept, commented out, so email verification can
+// be switched back on later: remove the comment markers here, in cmd/server/main.go and in the mobile app.
+
+/*
 import (
 	"crypto/hmac"
 	"crypto/rand"
@@ -205,3 +210,4 @@ func (o *OTP) Verify(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.JSON(w, http.StatusOK, map[string]any{"accessToken": access, "refreshToken": refresh, "user": toOut(u), "isNew": isNew})
 }
+*/

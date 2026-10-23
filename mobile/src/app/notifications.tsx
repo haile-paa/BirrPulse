@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen } from '@/components/Header';
 import { EmptyState } from '@/components/EmptyState';
 import { colors } from '@/theme';
@@ -25,14 +24,14 @@ export default function Notifications() {
       {list.map((n, i) => {
         const [icon, color] = ICON[n.kind];
         return (
-          <Animated.View key={n.id} entering={FadeInDown.delay(Math.min(i, 8) * 50).springify().damping(18)} style={[styles.row, !n.read && { backgroundColor: '#F4FAF9' }]}>
+          <View key={n.id} style={[styles.row, !n.read && { backgroundColor: '#F4FAF9' }]}>
             <View style={[styles.icon, { backgroundColor: `${color}22` }]}><Ionicons name={icon} size={20} color={color} /></View>
             <View style={{ flex: 1 }}>
               <Text style={styles.title}>{n.title}</Text>
               <Text style={styles.body}>{n.body}</Text>
               <Text style={styles.time}>{fmtRelativeDay(n.at)} · {fmtTime(n.at)}</Text>
             </View>
-          </Animated.View>
+          </View>
         );
       })}
     </Screen>

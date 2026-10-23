@@ -1,9 +1,11 @@
 import { addDays, daysInMonth, monthName, startOfDay, startOfMonth, startOfWeek, dayName } from '@/lib/format';
+import { smsCutoff } from '@/sms/window';
 import type { Account, Bill, Budget, Debt, Transaction, Workspace } from '@/types';
 
 export type Range = 'Day' | 'Week' | 'Month' | 'Year';
 
-export const isInternal = (t: Transaction) => !!t.transferGroup;
+/** Own-account transfers and loans/repayments move money but are neither income nor spending. */
+export const isInternal = (t: Transaction) => !!t.transferGroup || !!t.debtId;
 export const live = (txs: Transaction[], ws?: Workspace) => txs.filter((t) => !t.deleted && (!ws || t.workspace === ws));
 export const signed = (t: Transaction) => (t.type === 'income' ? t.amount : -(t.amount + t.fee));
 
@@ -189,4 +191,45 @@ export function monthlyCashflow(txs: Transaction[], months = 6, now = Date.now()
     out.push({ label: monthName(s), income: t.income, expense: t.expense, net: t.net });
   }
   return out;
+}
+
+export interface PayCycle { prev: number; next: number; daysLeft: number; totalDays: number; elapsedPct: number }
+
+/** The pay cycle around today: the last payday, the next payday and how many days are left (0 = payday is today). */
+export function payCycle(payday: number, now = Date.now()): PayCycle {
+  const today = startOfDay(now);
+  const at = (y: number, m: number) => new Date(y, m, Math.min(payday, new Date(y, m + 1, 0).getDate())).getTime();
+  const d = new Date(now);
+  let next = at(d.getFullYear(), d.getMonth());
+  if (next < today) next = at(d.getFullYear(), d.getMonth() + 1);
+  const n = new Date(next);
+  const prev = at(n.getFullYear(), n.getMonth() - 1);
+  const totalDays = Math.max(1, Math.round((next - prev) / 86400000));
+  const daysLeft = Math.max(0, Math.round((next - today) / 86400000));
+  return { prev, next, daysLeft, totalDays, elapsedPct: Math.min(1, Math.max(0, (totalDays - daysLeft) / totalDays)) };
+}
+
+/** Money received for this cycle (a salary / allowance transaction since a few days before the last payday). */
+export function incomeReceived(txs: Transaction[], cycleStart: number, kind: 'employee' | 'student'): Transaction | null {
+  const from = cycleStart - 3 * 86400000;
+  const match = (t: Transaction) => (kind === 'employee' ? t.incomeKind === 'salary' || t.categoryId === 'salary' : t.incomeKind === 'allowance' || t.categoryId === 'allowance');
+  return txs.find((t) => !t.deleted && t.type === 'income' && !isInternal(t) && t.occurredAt >= from && match(t)) ?? null;
+}
+
+/** Spending (without loans and own transfers) from a date until now. */
+export function spentSince(txs: Transaction[], from: number, now = Date.now()): number {
+  return totals(txs, from, now + 1).expense;
+}
+
+/**
+ * A bank account found from SMS that has had no activity for 5 months is treated as closed: the person cannot use it
+ * any more. Accounts created by hand (no bank message ever) and accounts with hand-added transactions are kept.
+ */
+export function isStaleSmsAccount(acc: Account, txs: Transaction[], now = Date.now()): boolean {
+  if (acc.deleted || acc.bankCode === 'CASH') return false;
+  const mine = txs.filter((t) => t.accountId === acc.id && !t.deleted);
+  if (mine.some((t) => t.source === 'manual')) return false;
+  if (!acc.verifiedBalance && mine.length === 0) return false; // added by hand and never used by a bank message
+  const last = Math.max(acc.verifiedBalance?.at ?? 0, ...mine.map((t) => t.occurredAt));
+  return last < smsCutoff(now);
 }

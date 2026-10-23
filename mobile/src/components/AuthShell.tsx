@@ -1,7 +1,6 @@
 import React, { type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius } from '@/theme';
@@ -18,16 +17,16 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
       <StatusBar style="light" />
       <HeaderScene style={{ paddingTop: insets.top + 28, paddingBottom: 64, paddingHorizontal: 24 }}>
         <LanguageToggle style={{ position: 'absolute', top: insets.top + 12, right: 20 }} />
-        <Animated.View entering={FadeInUp.springify().damping(14)}><Logo size={58} /></Animated.View>
-        <Animated.Text entering={FadeInUp.delay(80).springify()} style={styles.title}>{tr(title)}</Animated.Text>
-        <Animated.Text entering={FadeInUp.delay(140).springify()} style={styles.sub}>{tr(subtitle)}</Animated.Text>
+        <View><Logo size={58} /></View>
+        <Text style={styles.title}>{tr(title)}</Text>
+        <Text style={styles.sub}>{tr(subtitle)}</Text>
       </HeaderScene>
-      <Animated.View entering={FadeInDown.delay(120).springify().damping(18)} style={styles.sheet}>
+      <View style={styles.sheet}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
           {children}
           <View style={{ height: 8 }} />
         </ScrollView>
-      </Animated.View>
+      </View>
     </KeyboardAvoidingView>
   );
 }

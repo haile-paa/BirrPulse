@@ -64,7 +64,7 @@ export function LineChart({ values, labels, activeIndex = 0, height = 210, color
   useEffect(() => { setSel(Math.min(activeIndex, Math.max(0, values.length - 1))); }, [activeIndex, values.length]);
   useEffect(() => {
     reveal.value = 0;
-    reveal.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    reveal.value = 1;
   }, [values, reveal]);
   useEffect(() => {
     const p = pts[sel];

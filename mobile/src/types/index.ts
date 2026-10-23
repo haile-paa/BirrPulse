@@ -35,6 +35,8 @@ export interface Transaction {
   note?: string;
   workspace: Workspace;
   transferGroup?: string;
+  /** Set when this money movement is a loan or its repayment. It is then not counted as income or spending. '' = none. */
+  debtId?: string;
   updatedAt: number;
   deleted?: boolean;
 }
@@ -57,7 +59,7 @@ export interface Budget {
   deleted?: boolean;
 }
 
-export interface Repayment { id: string; amount: number; at: number }
+export interface Repayment { id: string; amount: number; at: number; /** the transaction that recorded this repayment */ txId?: string }
 
 export interface Debt {
   id: string;
@@ -67,6 +69,8 @@ export interface Debt {
   repayments: Repayment[];
   dueDate?: number | null;
   note?: string;
+  /** The transaction this debt was created from ("Move to debt"). */
+  sourceTxId?: string;
   workspace: Workspace;
   updatedAt: number;
   deleted?: boolean;
@@ -116,6 +120,14 @@ export interface Settings {
   lastSmsScan: number;
   lastSync: number;
   payday: number | null;
+  /** Employee: the company. Student: who sends the allowance (optional). */
+  incomeSource: string;
+  /** Monthly salary / allowance in minor units, or null. */
+  incomeAmount: number | null;
+  /** Id of the account whose data is on this phone, so another account never sees it. */
+  ownerId: string | null;
+  /** false while the role / salary answers still have to be saved to the account. */
+  profileSynced: boolean;
   notificationsOn: boolean;
   userName: string;
   language: 'en' | 'am';

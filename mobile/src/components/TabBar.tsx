@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -17,15 +16,11 @@ const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionico
 };
 
 function Item({ name, focused, onPress }: { name: string; focused: boolean; onPress: () => void }) {
-  const s = useSharedValue(focused ? 1 : 0);
-  useEffect(() => { s.value = withSpring(focused ? 1 : 0, { damping: 14, stiffness: 220 }); }, [focused, s]);
-  const icon = useAnimatedStyle(() => ({ transform: [{ scale: 1 + s.value * 0.18 }, { translateY: -s.value * 2 }] }));
-  const dot = useAnimatedStyle(() => ({ opacity: s.value, transform: [{ scale: s.value }] }));
   const [off, on] = ICONS[name] ?? ICONS.index;
   return (
-    <PressableScale haptic={false} onPress={onPress} style={styles.item} scaleTo={0.88}>
-      <Animated.View style={icon}><Ionicons name={focused ? on : off} size={24} color={focused ? colors.primary : '#A9B6B3'} /></Animated.View>
-      <Animated.View style={[styles.dot, dot]} />
+    <PressableScale haptic={false} onPress={onPress} style={styles.item}>
+      <Ionicons name={focused ? on : off} size={24} color={focused ? colors.primary : '#A9B6B3'} />
+      {focused ? <View style={styles.dot} /> : <View style={[styles.dot, { opacity: 0 }]} />}
     </PressableScale>
   );
 }
@@ -45,11 +40,11 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         <View style={styles.fabSlot} />
         {routes.slice(2).map((r, i) => <Item key={r.key} name={r.name} focused={state.index === i + 2} onPress={() => press(i + 2)} />)}
       </View>
-      <Animated.View entering={ZoomIn.delay(300).springify().damping(12)} style={styles.fabWrap} pointerEvents="box-none">
+      <View style={styles.fabWrap} pointerEvents="box-none">
         <PressableScale onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); router.push('/add'); }} haptic={false} scaleTo={0.9} style={[styles.fab, shadow.card]}>
           <Ionicons name="add" size={32} color="#fff" />
         </PressableScale>
-      </Animated.View>
+      </View>
     </View>
   );
 }

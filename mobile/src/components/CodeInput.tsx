@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } 
 import { Text } from '@/components/Text';
 import { colors } from '@/theme';
 
-export interface CodeInputHandle { shake: () => void; clear: () => void }
+export interface CodeInputHandle { shake: () => void; clear: () => void; fill: (code: string) => void }
 
 /** Six boxes backed by one hidden input: easy to read, supports paste and one-time-code autofill. */
 export const CodeInput = forwardRef<CodeInputHandle, { length?: number; onComplete: (code: string) => void; disabled?: boolean }>(
@@ -16,6 +16,7 @@ export const CodeInput = forwardRef<CodeInputHandle, { length?: number; onComple
     useImperativeHandle(ref, () => ({
       shake: () => { dx.value = withSequence(withTiming(-10, { duration: 50 }), withTiming(10, { duration: 80 }), withTiming(-8, { duration: 70 }), withTiming(0, { duration: 50 })); },
       clear: () => { setValue(''); input.current?.focus(); },
+      fill: (code: string) => setValue(code.replace(/\D/g, '').slice(0, length)),
     }));
     const change = (t: string) => {
       const digits = t.replace(/\D/g, '').slice(0, length);

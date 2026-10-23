@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Screen, IconButton } from '@/components/Header';
@@ -53,11 +52,11 @@ export default function Wallet() {
 
   return (
     <Screen title="Wallet" back={false} tabs right={<IconButton name="business" onPress={() => router.push('/accounts')} />}>
-      <Animated.View entering={FadeInDown.springify()} style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: 'center' }}>
         <Text style={styles.label}>Total Balance</Text>
         <AnimatedNumber value={bal.amount} format={(v) => formatBirr(v)} style={styles.balance} />
         <View style={{ marginTop: 8 }}><BalanceBadge verified={bal.allVerified} /></View>
-      </Animated.View>
+      </View>
 
       <View style={styles.actions}>
         <Action icon="add" label="Add" onPress={() => router.push('/add')} />
@@ -72,14 +71,14 @@ export default function Wallet() {
             const b = accountBalance(a, s.transactions);
             const bank = bankByCode(a.bankCode);
             return (
-              <Animated.View key={a.id} entering={FadeInRight.delay(i * 80).springify().damping(18)}>
+              <View key={a.id}>
                 <PressableScale onPress={() => router.push('/accounts')} style={[styles.accCard, { backgroundColor: bank.color }, shadow.soft]}>
                   <Text style={styles.accBank}>{bank.short}{a.tail ? `  ••${a.tail}` : ''}</Text>
                   <Text style={styles.accName} numberOfLines={1}>{a.nickname}</Text>
                   <Text style={styles.accBal}>{formatBirr(b.amount)}</Text>
                   <BalanceBadge verified={b.verified} at={b.at} dark />
                 </PressableScale>
-              </Animated.View>
+              </View>
             );
           })}
         </ScrollView>
@@ -88,19 +87,19 @@ export default function Wallet() {
       <View style={{ marginTop: 22 }}><Segmented options={TABS} value={tab} onChange={setTab} /></View>
 
       {tab === 'Transactions' ? (
-        <Animated.View key="tx" entering={FadeInRight.duration(260)} exiting={FadeOutLeft.duration(120)} style={{ marginTop: 14 }}>
+        <View key="tx" style={{ marginTop: 14 }}>
           {txs.length === 0 ? <EmptyState icon="receipt-outline" title="No transactions" text="They will appear here as bank SMS arrive or when you add them." action="Add transaction" onAction={() => router.push('/add')} /> : null}
           {txs.slice(0, limit).map((t, i) => <TxRow key={t.id} tx={t} index={i} categories={s.categories} accounts={s.accounts} />)}
           {txs.length > limit ? <Button title="Show more" variant="soft" style={{ marginTop: 10, height: 46 }} onPress={() => setLimit(limit + 20)} /> : null}
-        </Animated.View>
+        </View>
       ) : (
-        <Animated.View key="bills" entering={FadeInRight.duration(260)} exiting={FadeOutLeft.duration(120)} style={{ marginTop: 14 }}>
+        <View key="bills" style={{ marginTop: 14 }}>
           {bills.length === 0 ? <EmptyState icon="calendar-outline" title="No upcoming bills" text="Add rent, electricity or internet to get reminders before they are due." /> : null}
           {bills.map((b, i) => {
             const c = categoryById(s.categories, b.categoryId);
             const overdue = b.nextDue < startOfDay(Date.now());
             return (
-              <Animated.View key={b.id} entering={FadeInDown.delay(i * 60).springify().damping(18)}>
+              <View key={b.id}>
                 <PressableScale scaleTo={0.98} onPress={() => setBillOpen(b)} style={styles.billRow}>
                   <CategoryIcon icon={b.icon} color={c.color} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
@@ -112,11 +111,11 @@ export default function Wallet() {
                     <View style={styles.payPill}><Text style={styles.payText}>Pay</Text></View>
                   </View>
                 </PressableScale>
-              </Animated.View>
+              </View>
             );
           })}
           <Button title="Add a bill" icon="add" variant="outline" style={{ marginTop: 12 }} onPress={() => setNewBill(true)} />
-        </Animated.View>
+        </View>
       )}
 
       <BillSheet bill={billOpen} onClose={() => setBillOpen(null)} />

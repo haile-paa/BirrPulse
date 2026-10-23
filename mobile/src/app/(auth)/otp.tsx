@@ -1,3 +1,13 @@
+import React from 'react';
+import { Redirect } from 'expo-router';
+
+// DISABLED: the email-code screen. BirrPulse now signs in with a phone number and a code that arrives as a notification
+// (see login.tsx and register.tsx). The old screen is kept below, commented out, so it can be switched back on.
+export default function EmailCodeDisabled() {
+  return <Redirect href="/(auth)/login" />;
+}
+
+/*
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
@@ -95,3 +105,4 @@ const styles = StyleSheet.create({
   link: { color: colors.primaryDark, fontSize: 14, fontWeight: '700' },
   hint: { color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 18, lineHeight: 17 },
 });
+*/

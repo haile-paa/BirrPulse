@@ -52,6 +52,8 @@ func (h *Reports) match(r *http.Request, internalOnly, excludeInternal bool) bso
 	if excludeInternal {
 		return bson.M{"$and": bson.A{m, bson.M{"$or": bson.A{
 			bson.M{"transferGroup": bson.M{"$exists": false}}, bson.M{"transferGroup": nil}, bson.M{"transferGroup": ""},
+		}}, bson.M{"$or": bson.A{
+			bson.M{"debtId": bson.M{"$exists": false}}, bson.M{"debtId": nil}, bson.M{"debtId": ""},
 		}}}}
 	}
 	return m
@@ -82,7 +84,10 @@ func (h *Reports) Summary(w http.ResponseWriter, r *http.Request) {
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: bson.D{
 				{Key: "type", Value: "$type"}, {Key: "channel", Value: "$channel"},
-				{Key: "internal", Value: bson.D{{Key: "$gt", Value: bson.A{bson.D{{Key: "$strLenCP", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$transferGroup", ""}}}}}, 0}}}},
+				{Key: "internal", Value: bson.D{{Key: "$or", Value: bson.A{
+					bson.D{{Key: "$gt", Value: bson.A{bson.D{{Key: "$strLenCP", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$transferGroup", ""}}}}}, 0}}},
+					bson.D{{Key: "$gt", Value: bson.A{bson.D{{Key: "$strLenCP", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$debtId", ""}}}}}, 0}}},
+				}}}},
 			}},
 			{Key: "amount", Value: bson.D{{Key: "$sum", Value: "$amount"}}},
 			{Key: "fee", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$fee", 0}}}}}},
@@ -159,7 +164,10 @@ func (h *Reports) Cashflow(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().In(loc)
 	start := time.Date(now.Year(), now.Month()-time.Month(months-1), 1, 0, 0, 0, 0, loc)
 	m := bson.M{"userId": auth.UserID(r.Context()), "deleted": bson.M{"$ne": true}, "occurredAt": bson.M{"$gte": start.UnixMilli()},
-		"$or": bson.A{bson.M{"transferGroup": bson.M{"$exists": false}}, bson.M{"transferGroup": nil}, bson.M{"transferGroup": ""}}}
+		"$and": bson.A{
+			bson.M{"$or": bson.A{bson.M{"transferGroup": bson.M{"$exists": false}}, bson.M{"transferGroup": nil}, bson.M{"transferGroup": ""}}},
+			bson.M{"$or": bson.A{bson.M{"debtId": bson.M{"$exists": false}}, bson.M{"debtId": nil}, bson.M{"debtId": ""}}},
+		}}
 	if ws := r.URL.Query().Get("workspace"); ws == "personal" || ws == "business" {
 		m["workspace"] = ws
 	}

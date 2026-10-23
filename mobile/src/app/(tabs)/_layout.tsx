@@ -18,7 +18,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(p) => <TabBar {...p} />}
-      screenOptions={{ headerShown: false, animation: "shift" }}
+      screenOptions={{ headerShown: false, animation: "none" }}
     >
       <Tabs.Screen name='index' />
       <Tabs.Screen name='stats' />

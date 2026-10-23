@@ -49,7 +49,7 @@ var specs = map[string]spec{
 	"transactions": {
 		required: []string{"accountId", "type", "amount", "occurredAt", "categoryId"},
 		allowed: allow("accountId", "type", "channel", "amount", "fee", "balanceAfter", "categoryId", "incomeKind", "counterparty",
-			"ref", "occurredAt", "source", "dedupeHash", "note", "workspace", "transferGroup"),
+			"ref", "occurredAt", "source", "dedupeHash", "note", "workspace", "transferGroup", "debtId"),
 		money: []string{"amount", "fee", "balanceAfter"},
 		times: []string{"occurredAt"},
 		enums: map[string][]string{
@@ -65,7 +65,7 @@ var specs = map[string]spec{
 	},
 	"debts": {
 		required: []string{"direction", "person", "principal"},
-		allowed:  allow("direction", "person", "principal", "repayments", "dueDate", "note", "workspace"),
+		allowed:  allow("direction", "person", "principal", "repayments", "dueDate", "note", "workspace", "sourceTxId"),
 		money:    []string{"principal"},
 		times:    []string{"dueDate"},
 		enums:    map[string][]string{"direction": {"borrowed", "lent"}, "workspace": workspaces},
@@ -122,7 +122,11 @@ func cleanRepayments(v any) ([]bson.M, error) {
 		if id == "" || !okA || !okT || amt < 0 || amt > maxMoney {
 			return nil, errors.New("invalid repayment")
 		}
-		out = append(out, bson.M{"id": id, "amount": amt, "at": at})
+		rep := bson.M{"id": id, "amount": amt, "at": at}
+		if tx, _ := m["txId"].(string); tx != "" && len(tx) <= 64 {
+			rep["txId"] = tx
+		}
+		out = append(out, rep)
 	}
 	return out, nil
 }

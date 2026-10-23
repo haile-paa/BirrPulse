@@ -17,6 +17,7 @@ const (
 	Notifications = "notifications"
 	Parsers       = "parser_templates"
 	OTPs          = "otps"
+	EmailCodes    = "email_codes"
 )
 
 // SyncCollections are the per-user document collections that the mobile app syncs.
@@ -74,6 +75,11 @@ func (s *Store) EnsureIndexes(ctx context.Context) error {
 		Parsers:       {uniq(bson.D{{Key: "bankCode", Value: 1}}, nil)},
 		OTPs: {
 			uniq(bson.D{{Key: "email", Value: 1}}, nil),
+			{Keys: bson.D{{Key: "purgeAt", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(0)},
+		},
+		// One-time codes e-mailed for password reset and for linking a recovery email (see handlers/recovery.go).
+		EmailCodes: {
+			uniq(bson.D{{Key: "key", Value: 1}}, nil),
 			{Keys: bson.D{{Key: "purgeAt", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(0)},
 		},
 	}

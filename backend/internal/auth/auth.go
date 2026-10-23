@@ -76,6 +76,23 @@ func (m *Manager) Rotate(ctx context.Context, raw string) (string, string, error
 	return m.Pair(ctx, doc.UserID)
 }
 
+// Renew keeps the same refresh token but pushes its expiry to now + RefreshTTL and returns a fresh access token.
+// The session therefore lasts RefreshTTL (one month) after the last use, and it survives until the user logs out.
+// Unlike Rotate it cannot strand a phone that was closed before it stored a new token.
+func (m *Manager) Renew(ctx context.Context, raw string) (string, error) {
+	var doc struct {
+		UserID    primitive.ObjectID `bson:"userId"`
+		ExpiresAt time.Time          `bson:"expiresAt"`
+	}
+	err := m.Store.Col(db.RefreshTokens).FindOneAndUpdate(ctx,
+		bson.M{"hash": hashToken(raw), "expiresAt": bson.M{"$gt": time.Now()}},
+		bson.M{"$set": bson.M{"expiresAt": time.Now().Add(m.RefreshTTL)}}).Decode(&doc)
+	if err != nil {
+		return "", ErrInvalidRefresh
+	}
+	return m.NewAccess(doc.UserID)
+}
+
 func (m *Manager) Pair(ctx context.Context, userID primitive.ObjectID) (string, string, error) {
 	a, err := m.NewAccess(userID)
 	if err != nil {
@@ -83,6 +100,11 @@ func (m *Manager) Pair(ctx context.Context, userID primitive.ObjectID) (string, 
 	}
 	r, err := m.IssueRefresh(ctx, userID)
 	return a, r, err
+}
+
+// RevokeAll signs the user out everywhere (used after a password reset).
+func (m *Manager) RevokeAll(ctx context.Context, userID primitive.ObjectID) {
+	_, _ = m.Store.Col(db.RefreshTokens).DeleteMany(ctx, bson.M{"userId": userID})
 }
 
 func (m *Manager) Revoke(ctx context.Context, raw string) {

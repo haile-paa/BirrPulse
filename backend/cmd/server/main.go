@@ -50,16 +50,19 @@ func main() {
 	reports := &handlers.Reports{Store: store}
 	misc := &handlers.Misc{Store: store}
 
-	// --- Email (sign-in codes) and push sender (FCM) ----------------------------------------------
+	// --- Email (password reset and recovery-email codes) and push sender (FCM) ------------------------------
 	var mail mailer.Sender = mailer.LogSender{Log: log}
 	if cfg.SMTPHost != "" {
 		mail = &mailer.SMTP{Host: cfg.SMTPHost, Port: cfg.SMTPPort, User: cfg.SMTPUser, Password: cfg.SMTPPassword, From: cfg.SMTPFrom}
 	}
-	otpEnabled := mail.Real() || cfg.Env != "production"
-	if !otpEnabled {
-		log.Warn("email sign-in disabled: set SMTP_HOST, SMTP_FROM (and credentials) in production")
+	mailEnabled := mail.Real() || cfg.Env != "production"
+	if !mailEnabled {
+		log.Warn("password reset by email disabled: set SMTP_HOST, SMTP_FROM (and credentials) in production")
 	}
-	otp := &handlers.OTP{Store: store, Auth: authH, Mail: mail, Secret: []byte(cfg.OTPSecret), TTL: cfg.OTPTTL, Enabled: otpEnabled}
+	recovery := &handlers.Recovery{Store: store, Tokens: tokens, Mail: mail, Secret: []byte(cfg.OTPSecret), TTL: cfg.OTPTTL, Enabled: mailEnabled}
+
+	// Email SIGN-IN codes (the old OTP login) stay disabled; the code is kept commented out in handlers/otp.go.
+	// otp := &handlers.OTP{Store: store, Auth: authH, Mail: mail, Secret: []byte(cfg.OTPSecret), TTL: cfg.OTPTTL, Enabled: mailEnabled}
 
 	var pusher push.Sender = push.LogSender{Log: log}
 	if creds := loadFCMCreds(cfg); creds != nil {
@@ -73,18 +76,23 @@ func main() {
 	} else {
 		log.Warn("push: no FCM credentials, notifications will only be logged (set FCM_CREDENTIALS_FILE)")
 	}
+
 	parsers := &handlers.Parsers{Store: store, AdminToken: cfg.AdminToken}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", misc.Health)
 
 	limited := httpx.RateLimit(6*time.Second, 10) // about 10 attempts per minute per IP
+	// Sign-up: username + phone + password. Log in: phone + password.
 	mux.Handle("POST /api/v1/auth/register", limited(http.HandlerFunc(authH.Register)))
 	mux.Handle("POST /api/v1/auth/login", limited(http.HandlerFunc(authH.Login)))
+	mux.Handle("POST /api/v1/auth/forgot/request", limited(http.HandlerFunc(recovery.ForgotRequest)))
+	mux.Handle("POST /api/v1/auth/forgot/confirm", limited(http.HandlerFunc(recovery.ForgotConfirm)))
 	mux.Handle("POST /api/v1/auth/refresh", limited(http.HandlerFunc(authH.Refresh)))
 	mux.HandleFunc("POST /api/v1/auth/logout", authH.Logout)
-	mux.Handle("POST /api/v1/auth/otp/request", limited(http.HandlerFunc(otp.Request)))
-	mux.Handle("POST /api/v1/auth/otp/verify", limited(http.HandlerFunc(otp.Verify)))
+	// Email SIGN-IN codes: DISABLED (kept as comments, code in handlers/otp.go).
+	// mux.Handle("POST /api/v1/auth/otp/request", limited(http.HandlerFunc(otp.Request)))
+	// mux.Handle("POST /api/v1/auth/otp/verify", limited(http.HandlerFunc(otp.Verify)))
 
 	// Parser configuration is public so guests (no account) get fixes too.
 	mux.Handle("GET /api/v1/config/parsers", httpx.RateLimit(time.Second, 30)(http.HandlerFunc(parsers.Public)))
@@ -95,6 +103,9 @@ func main() {
 
 	secured := func(pattern string, h http.HandlerFunc) { mux.Handle(pattern, tokens.Require(h)) }
 	secured("GET /api/v1/me", authH.Me)
+	secured("PATCH /api/v1/me", authH.UpdateProfile)
+	secured("POST /api/v1/me/email/request", recovery.LinkEmailRequest)
+	secured("POST /api/v1/me/email/verify", recovery.LinkEmailVerify)
 	secured("GET /api/v1/me/export", authH.Export)
 	secured("DELETE /api/v1/me", authH.DeleteAccount)
 

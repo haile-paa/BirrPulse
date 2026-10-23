@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Screen, IconButton } from '@/components/Header';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -41,14 +40,14 @@ export default function Goals() {
         const monthsLeft = g.deadline ? Math.max(1, Math.ceil((g.deadline - Date.now()) / (30 * 86400000))) : null;
         const perMonth = monthsLeft ? Math.max(0, Math.ceil((g.target - g.saved) / monthsLeft)) : null;
         return (
-          <Animated.View key={g.id} entering={FadeInDown.delay(i * 80).springify().damping(18)} style={styles.card}>
+          <View key={g.id} style={styles.card}>
             <View style={styles.top}>
               <CategoryIcon icon={g.icon} color={colors.primary} size={46} />
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.name}>{g.name}</Text>
                 <Text style={styles.sub}>{t('{saved} of {target}', { saved: formatBirr(g.saved), target: formatBirr(g.target) })}</Text>
               </View>
-              {pct >= 1 ? <Animated.View entering={ZoomIn.springify()}><Ionicons name="checkmark-circle" size={28} color={colors.income} /></Animated.View> : <Text style={styles.pct}>{Math.round(pct * 100)}%</Text>}
+              {pct >= 1 ? <View><Ionicons name="checkmark-circle" size={28} color={colors.income} /></View> : <Text style={styles.pct}>{Math.round(pct * 100)}%</Text>}
             </View>
             <ProgressBar pct={pct} warn={false} height={10} />
             {perMonth != null && pct < 1 ? <Text style={styles.hint}>{t('Save {amount} per month to reach it by {date}.', { amount: formatBirr(perMonth), date: fmtDate(g.deadline!) })}</Text> : null}
@@ -56,7 +55,7 @@ export default function Goals() {
               <Button title="Add money" variant="soft" icon="add" style={{ flex: 1, height: 44 }} onPress={() => { setAmt(''); setAdd(g); }} />
               <PressableScale onPress={() => s.deleteGoal(g.id)} style={styles.del}><Ionicons name="trash-outline" size={19} color={colors.expense} /></PressableScale>
             </View>
-          </Animated.View>
+          </View>
         );
       })}
 

@@ -2,18 +2,17 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { colors } from '@/theme';
 import { Button } from './Button';
 
 export function EmptyState({ icon, title, text, action, onAction }: { icon: keyof typeof Ionicons.glyphMap; title: string; text?: string; action?: string; onAction?: () => void }) {
   return (
-    <Animated.View entering={FadeInUp.springify().damping(18)} style={styles.wrap}>
+    <View style={styles.wrap}>
       <View style={styles.circle}><Ionicons name={icon} size={34} color={colors.primary} /></View>
       <Text style={styles.title}>{title}</Text>
       {text ? <Text style={styles.text}>{text}</Text> : null}
       {action ? <Button title={action} onPress={onAction} variant="soft" style={{ marginTop: 16, height: 46 }} /> : null}
-    </Animated.View>
+    </View>
   );
 }
 

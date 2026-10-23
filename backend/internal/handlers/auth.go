@@ -29,14 +29,25 @@ type userDoc struct {
 	Email        *string            `bson:"email,omitempty"`
 	Phone        *string            `bson:"phone,omitempty"`
 	PasswordHash string             `bson:"passwordHash"`
+	Profile      *profile           `bson:"profile,omitempty"`
 	CreatedAt    time.Time          `bson:"createdAt"`
 }
 
+// profile is what the app asks during setup. It lives on the account so a returning user gets the same role
+// (student / employee / business) back on any phone. Money is in minor units (cents).
+type profile struct {
+	UserType     string `bson:"userType,omitempty" json:"userType,omitempty"`
+	IncomeSource string `bson:"incomeSource,omitempty" json:"incomeSource,omitempty"` // employer, or who sends the allowance
+	IncomeAmount int64  `bson:"incomeAmount,omitempty" json:"incomeAmount,omitempty"`
+	Payday       int    `bson:"payday,omitempty" json:"payday,omitempty"`
+}
+
 type userOut struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email,omitempty"`
-	Phone string `json:"phone,omitempty"`
+	ID      string   `json:"id"`
+	Name    string   `json:"name"`
+	Email   string   `json:"email,omitempty"`
+	Phone   string   `json:"phone,omitempty"`
+	Profile *profile `json:"profile,omitempty"`
 }
 
 type authOut struct {
@@ -56,7 +67,7 @@ type credentials struct {
 var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("birrpulse-dummy"), 12)
 
 func toOut(u userDoc) userOut {
-	o := userOut{ID: u.ID.Hex(), Name: u.Name}
+	o := userOut{ID: u.ID.Hex(), Name: u.Name, Profile: u.Profile}
 	if u.Email != nil {
 		o.Email = *u.Email
 	}
@@ -170,12 +181,13 @@ func (h *Auth) Refresh(w http.ResponseWriter, r *http.Request) {
 		httpx.Error(w, http.StatusBadRequest, "refreshToken is required")
 		return
 	}
-	access, refresh, err := h.Tokens.Rotate(r.Context(), in.RefreshToken)
+	// The same refresh token is kept and its expiry is pushed one month ahead, so the session lasts until logout.
+	access, err := h.Tokens.Renew(r.Context(), in.RefreshToken)
 	if err != nil {
 		httpx.Error(w, http.StatusUnauthorized, err.Error())
 		return
 	}
-	httpx.JSON(w, http.StatusOK, map[string]string{"accessToken": access, "refreshToken": refresh})
+	httpx.JSON(w, http.StatusOK, map[string]string{"accessToken": access, "refreshToken": in.RefreshToken})
 }
 
 func (h *Auth) Logout(w http.ResponseWriter, r *http.Request) {
@@ -238,4 +250,80 @@ func (h *Auth) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.JSON(w, http.StatusOK, map[string]bool{"deleted": true})
+}
+
+var userTypes = map[string]bool{"student": true, "employee": true, "business": true}
+
+// UpdateProfile saves the setup answers. The role can be chosen once and is then locked: a student or employee
+// cannot switch to a business account (and the other way round).
+func (h *Auth) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Name         *string `json:"name"`
+		UserType     *string `json:"userType"`
+		IncomeSource *string `json:"incomeSource"`
+		IncomeAmount *int64  `json:"incomeAmount"`
+		Payday       *int    `json:"payday"`
+	}
+	if err := httpx.Decode(w, r, &in); err != nil {
+		httpx.Error(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx := r.Context()
+	uid := auth.UserID(ctx)
+	var u userDoc
+	if err := h.Store.Col(db.Users).FindOne(ctx, bson.M{"_id": uid}).Decode(&u); err != nil {
+		httpx.Error(w, http.StatusNotFound, "user not found")
+		return
+	}
+	set := bson.M{}
+	if in.Name != nil {
+		n := strings.TrimSpace(*in.Name)
+		if len(n) < 2 || len(n) > 80 {
+			httpx.Error(w, http.StatusBadRequest, "name must be 2 to 80 characters")
+			return
+		}
+		set["name"] = n
+	}
+	if in.UserType != nil {
+		t := strings.TrimSpace(*in.UserType)
+		if !userTypes[t] {
+			httpx.Error(w, http.StatusBadRequest, "role must be student, employee or business")
+			return
+		}
+		if u.Profile != nil && u.Profile.UserType != "" && u.Profile.UserType != t {
+			httpx.Error(w, http.StatusConflict, "your role is already set and cannot be changed")
+			return
+		}
+		set["profile.userType"] = t
+	}
+	if in.IncomeSource != nil {
+		src := strings.TrimSpace(*in.IncomeSource)
+		if len(src) > 80 {
+			httpx.Error(w, http.StatusBadRequest, "name is too long")
+			return
+		}
+		set["profile.incomeSource"] = src
+	}
+	if in.IncomeAmount != nil {
+		if *in.IncomeAmount < 0 || *in.IncomeAmount > 10_000_000_000_000 {
+			httpx.Error(w, http.StatusBadRequest, "invalid amount")
+			return
+		}
+		set["profile.incomeAmount"] = *in.IncomeAmount
+	}
+	if in.Payday != nil {
+		if *in.Payday < 0 || *in.Payday > 31 {
+			httpx.Error(w, http.StatusBadRequest, "payday must be a day of the month (1 to 31)")
+			return
+		}
+		set["profile.payday"] = *in.Payday
+	}
+	if len(set) > 0 {
+		if _, err := h.Store.Col(db.Users).UpdateOne(ctx, bson.M{"_id": uid}, bson.M{"$set": set}); err != nil {
+			httpx.Error(w, http.StatusInternalServerError, "could not save")
+			return
+		}
+	}
+	_ = h.Store.Col(db.Users).FindOne(ctx, bson.M{"_id": uid}).Decode(&u)
+	httpx.JSON(w, http.StatusOK, toOut(u))
 }

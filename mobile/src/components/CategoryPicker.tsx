@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { ZoomIn } from 'react-native-reanimated';
 import { colors } from '@/theme';
 import type { Category } from '@/types';
 import { PressableScale } from './PressableScale';
@@ -13,12 +12,12 @@ export function CategoryPicker({ categories, value, onChange }: { categories: Ca
       {categories.map((c, i) => {
         const on = c.id === value;
         return (
-          <Animated.View key={c.id} entering={ZoomIn.delay(i * 18).springify().damping(16)} style={styles.cell}>
+          <View key={c.id} style={styles.cell}>
             <PressableScale onPress={() => onChange(c.id)} style={[styles.tile, on && { backgroundColor: `${c.color}22`, borderColor: c.color }]}>
               <Ionicons name={c.icon as keyof typeof Ionicons.glyphMap} size={20} color={on ? c.color : colors.muted} />
               <Text style={[styles.name, on && { color: colors.text, fontWeight: '700' }]} numberOfLines={1}>{c.name}</Text>
             </PressableScale>
-          </Animated.View>
+          </View>
         );
       })}
     </View>

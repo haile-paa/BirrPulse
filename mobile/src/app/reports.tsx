@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Screen } from '@/components/Header';
@@ -23,11 +22,11 @@ const RANGES: readonly Range[] = ['Week', 'Month', 'Year'];
 
 function Stat({ label, value, icon, color, i }: { label: string; value: number; icon: keyof typeof Ionicons.glyphMap; color: string; i: number }) {
   return (
-    <Animated.View entering={FadeInDown.delay(i * 60).springify().damping(18)} style={styles.stat}>
+    <View style={styles.stat}>
       <View style={[styles.statIcon, { backgroundColor: `${color}22` }]}><Ionicons name={icon} size={18} color={color} /></View>
       <Text style={styles.statK}>{label}</Text>
       <AnimatedNumber value={value} format={(v) => formatBirr(v, { compact: true })} style={styles.statV} duration={700} />
-    </Animated.View>
+    </View>
   );
 }
 
@@ -97,13 +96,13 @@ export default function Reports() {
       {cats.length === 0 ? <Text style={styles.disc}>No expenses in this period.</Text> : cats.slice(0, 6).map((c, i) => {
         const cat = categoryById(s.categories, c.categoryId);
         return (
-          <Animated.View key={c.categoryId} entering={FadeInDown.delay(i * 50).springify()} style={styles.catRow}>
+          <View key={c.categoryId} style={styles.catRow}>
             <CategoryIcon icon={cat.icon} color={cat.color} size={38} />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}><Text style={styles.catName}>{cat.name}</Text><Text style={styles.catAmt}>{formatBirr(c.total, { symbol: false })}</Text></View>
               <ProgressBar pct={c.total / (tot.expense || 1)} color={cat.color} height={6} />
             </View>
-          </Animated.View>
+          </View>
         );
       })}
 
@@ -117,7 +116,7 @@ export default function Reports() {
 }
 
 function ProgressBarV({ value, color, delay }: { value: number; color: string; delay: number }) {
-  return <Animated.View entering={FadeInDown.delay(delay).springify().damping(16)} style={{ width: 10, height: Math.max(3, value * 96), backgroundColor: color, borderRadius: 5 }} />;
+  return <View style={{ width: 10, height: Math.max(3, value * 96), backgroundColor: color, borderRadius: 5 }} />;
 }
 
 const styles = StyleSheet.create({

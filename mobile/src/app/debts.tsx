@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Screen, IconButton } from '@/components/Header';
 import { Segmented } from '@/components/Segmented';
@@ -35,8 +34,8 @@ export default function Debts() {
   return (
     <Screen title={biz ? 'Customer & supplier debts' : 'Debts & credit'} right={<IconButton name="add" onPress={() => setCreate(true)} />}>
       <View style={styles.pair}>
-        <Animated.View entering={FadeInDown.springify()} style={[styles.tile, { backgroundColor: '#E3F5EC' }]}><Text style={styles.tileK}>{biz ? 'Customers owe you' : 'People owe you'}</Text><Text style={[styles.tileV, { color: colors.income }]}>{formatBirr(sum.owedToMe, { compact: true })}</Text></Animated.View>
-        <Animated.View entering={FadeInDown.delay(80).springify()} style={[styles.tile, { backgroundColor: '#FDECEC' }]}><Text style={styles.tileK}>{biz ? 'You owe suppliers' : 'You owe'}</Text><Text style={[styles.tileV, { color: colors.expense }]}>{formatBirr(sum.iOwe, { compact: true })}</Text></Animated.View>
+        <View style={[styles.tile, { backgroundColor: '#E3F5EC' }]}><Text style={styles.tileK}>{biz ? 'Customers owe you' : 'People owe you'}</Text><Text style={[styles.tileV, { color: colors.income }]}>{formatBirr(sum.owedToMe, { compact: true })}</Text></View>
+        <View style={[styles.tile, { backgroundColor: '#FDECEC' }]}><Text style={styles.tileK}>{biz ? 'You owe suppliers' : 'You owe'}</Text><Text style={[styles.tileV, { color: colors.expense }]}>{formatBirr(sum.iOwe, { compact: true })}</Text></View>
       </View>
       <View style={{ marginTop: 18 }}><Segmented options={labels} value={tab as (typeof labels)[number]} onChange={setTab} /></View>
       <View style={{ marginTop: 10 }}>
@@ -45,7 +44,7 @@ export default function Debts() {
           const out = debtOutstanding(d);
           const overdue = !!d.dueDate && out > 0 && d.dueDate < startOfDay(Date.now());
           return (
-            <Animated.View key={d.id} entering={FadeInDown.delay(i * 60).springify().damping(18)}>
+            <View key={d.id}>
               <PressableScale onPress={() => setOpen(d)} scaleTo={0.98} style={styles.card}>
                 <View style={styles.top}>
                   <View style={styles.avatar}><Text style={styles.avatarText}>{d.person.slice(0, 1).toUpperCase()}</Text></View>
@@ -57,7 +56,7 @@ export default function Debts() {
                 </View>
                 <ProgressBar pct={d.principal ? debtPaid(d) / d.principal : 0} warn={false} height={6} color={colors.income} />
               </PressableScale>
-            </Animated.View>
+            </View>
           );
         })}
       </View>

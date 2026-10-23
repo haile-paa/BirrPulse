@@ -15,15 +15,21 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'staff', name: 'Staff', icon: 'people', color: '#4DB6AC', kind: 'expense' },
   { id: 'fees', name: 'Bank fees', icon: 'receipt', color: '#9AA5A3', kind: 'expense' },
   { id: 'other_exp', name: 'Other', icon: 'ellipsis-horizontal', color: '#9AA5A3', kind: 'expense' },
+  { id: 'debt', name: 'Lent / debt', icon: 'swap-horizontal', color: '#8E9BA8', kind: 'expense' },
   { id: 'salary', name: 'Salary', icon: 'briefcase', color: '#2E9E6B', kind: 'income' },
   { id: 'business_inc', name: 'Business income', icon: 'storefront', color: '#3A8D87', kind: 'income' },
   { id: 'allowance', name: 'Allowance', icon: 'wallet', color: '#5BB98B', kind: 'income' },
   { id: 'gift', name: 'Gift', icon: 'gift', color: '#E86FA3', kind: 'income' },
   { id: 'other_inc', name: 'Other income', icon: 'cash', color: '#7FBF9E', kind: 'income' },
+  { id: 'debt_in', name: 'Borrowed / debt', icon: 'swap-horizontal', color: '#8E9BA8', kind: 'income' },
 ];
 
+/** Categories the app assigns by itself (loans). They are not offered in the category pickers. */
+export const AUTO_CATEGORY_IDS = new Set(['debt', 'debt_in']);
+export const pickable = (cats: Category[]): Category[] => cats.filter((c) => !AUTO_CATEGORY_IDS.has(c.id));
+
 export const categoryById = (cats: Category[], id: string): Category =>
-  cats.find((c) => c.id === id) ?? DEFAULT_CATEGORIES.find((c) => c.id === id) ?? DEFAULT_CATEGORIES[13];
+  cats.find((c) => c.id === id) ?? DEFAULT_CATEGORIES.find((c) => c.id === id) ?? DEFAULT_CATEGORIES.find((c) => c.id === 'other_exp')!;
 
 const RULES: Array<[string, RegExp]> = [
   ['rent', /\brent|landlord|house rent/i],

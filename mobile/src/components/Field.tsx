@@ -8,12 +8,6 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Text } from "@/components/Text";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  interpolateColor,
-} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme";
 import { PressableScale } from "./PressableScale";
@@ -51,26 +45,19 @@ export function Field({
   autoFocus,
 }: Props) {
   useLang();
-  const focus = useSharedValue(0);
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
   const isPassword = !!secureTextEntry;
-  const box = useAnimatedStyle(() => ({
-    borderColor: error
-      ? colors.expense
-      : interpolateColor(focus.value, [0, 1], [colors.line, colors.primary]),
-    backgroundColor: interpolateColor(
-      focus.value,
-      [0, 1],
-      ["#FFFFFF", "#F6FBFA"],
-    ),
-  }));
+  const box = {
+    borderColor: error ? colors.expense : focused ? colors.primary : colors.line,
+    backgroundColor: focused ? "#F6FBFA" : "#FFFFFF",
+  };
   return (
     <View style={[{ marginBottom: 14 }, style]}>
       <Text style={[styles.label, focused && { color: colors.primary }]}>
         {tr(label).toUpperCase()}
       </Text>
-      <Animated.View
+      <View
         style={[
           styles.box,
           multiline && { height: 90, alignItems: "flex-start", paddingTop: 10 },
@@ -91,11 +78,9 @@ export function Field({
           multiline={multiline}
           onFocus={() => {
             setFocused(true);
-            focus.value = withTiming(1, { duration: 180 });
           }}
           onBlur={() => {
             setFocused(false);
-            focus.value = withTiming(0, { duration: 180 });
           }}
           style={styles.input}
         />
@@ -117,7 +102,7 @@ export function Field({
         ) : (
           right
         )}
-      </Animated.View>
+      </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );

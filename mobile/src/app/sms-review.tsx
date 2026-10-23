@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
-import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Screen } from '@/components/Header';
 import { EmptyState } from '@/components/EmptyState';
@@ -20,14 +19,14 @@ export default function SmsReview() {
       <Text style={styles.note}>These messages come from a supported bank but BirrPulse could not read the amount or direction. Add them by hand or dismiss them. Message formats are updated over time.</Text>
       {list.length === 0 ? <EmptyState icon="checkmark-done-circle-outline" title="Nothing to review" /> : null}
       {list.map((m, i) => (
-        <Animated.View key={m.id} layout={LinearTransition.springify()} entering={FadeInDown.delay(i * 50).springify()} style={styles.card}>
+        <View key={m.id} style={styles.card}>
           <Text style={styles.meta}>{m.address} · {fmtDate(m.date)} {fmtTime(m.date)}</Text>
           <Text style={styles.body}>{m.body}</Text>
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
             <Button title="Add by hand" variant="soft" style={{ flex: 1, height: 42 }} onPress={() => { const a = /(\d[\d,]*\.?\d*)/.exec(m.body)?.[1]?.replace(/,/g, ''); router.push({ pathname: '/add', params: { amount: a ?? '', note: 'From bank SMS' } }); dismiss(m.id); }} />
             <Button title="Dismiss" variant="outline" style={{ flex: 1, height: 42 }} onPress={() => dismiss(m.id)} />
           </View>
-        </Animated.View>
+        </View>
       ))}
     </Screen>
   );

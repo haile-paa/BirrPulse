@@ -1,27 +1,21 @@
 import React from 'react';
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface Props extends Omit<PressableProps, 'style'> {
   style?: StyleProp<ViewStyle>;
+  /** Kept for compatibility. The press feedback is now a plain, instant dim (no animation). */
   scaleTo?: number;
   haptic?: boolean;
 }
 
-export function PressableScale({ style, scaleTo = 0.96, haptic = true, onPress, onPressIn, onPressOut, children, ...rest }: Props) {
-  const scale = useSharedValue(1);
-  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+export function PressableScale({ style, scaleTo: _scaleTo, haptic = true, onPress, children, ...rest }: Props) {
   return (
-    <AnimatedPressable
+    <Pressable
       {...rest}
-      style={[style, anim]}
-      onPressIn={(e) => { scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 }); onPressIn?.(e); }}
-      onPressOut={(e) => { scale.value = withSpring(1, { damping: 14, stiffness: 260 }); onPressOut?.(e); }}
+      style={({ pressed }) => [style, pressed && { opacity: 0.8 }]}
       onPress={(e) => { if (haptic) Haptics.selectionAsync().catch(() => {}); onPress?.(e); }}>
       {children as React.ReactNode}
-    </AnimatedPressable>
+    </Pressable>
   );
 }

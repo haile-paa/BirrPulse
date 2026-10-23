@@ -7,8 +7,10 @@ import { DEFAULT_CATEGORIES, categorize } from '@/lib/categories';
 import { bankByCode } from '@/sms/banks';
 import { setLang } from '@/i18n/lang';
 import { parseSms } from '@/sms/parser';
+import { smsCutoff } from '@/sms/window';
 import { demoSms, type RawSms } from '@/sms/sampleSms';
 import { computeAlerts } from '@/services/alerts';
+import { isStaleSmsAccount } from '@/services/insights';
 import type {
   Account, AppNotification, Bill, Budget, Category, Debt, Goal, Settings, Transaction, UnparsedSms, Workspace,
 } from '@/types';
@@ -23,7 +25,7 @@ function deviceLanguage(): 'en' | 'am' {
 
 const initialSettings: Settings = {
   workspace: 'personal', userType: null, onboarded: false, smsEnabled: false, lastSmsScan: 0,
-  lastSync: 0, payday: null, notificationsOn: true, userName: '',
+  lastSync: 0, payday: null, incomeSource: '', incomeAmount: null, ownerId: null, profileSynced: true, notificationsOn: true, userName: '',
   language: deviceLanguage(),
 };
 
@@ -47,6 +49,18 @@ interface Actions {
   addTransaction: (t: Omit<Transaction, 'id' | 'updatedAt' | 'source' | 'workspace'> & { workspace?: Workspace }) => Transaction;
   updateTransaction: (id: string, p: Partial<Transaction>, learnCategory?: boolean) => void;
   deleteTransaction: (id: string) => void;
+  /** Swap income <-> expense (fixes a message the app read the wrong way round). */
+  flipTransaction: (id: string) => void;
+  /** Turn a transaction into a loan record: spent money becomes "I lent", received money becomes "I borrowed". */
+  moveToDebt: (id: string, opts: { person: string; dueDate?: number | null }) => void;
+  /** Count a transaction as a repayment of an existing debt. Returns false when it does not fit. */
+  applyToDebt: (txId: string, debtId: string) => boolean;
+  /** Undo moveToDebt / applyToDebt: the transaction becomes normal income or spending again. */
+  unlinkDebt: (txId: string) => void;
+  /** Removes bank accounts (and their messages) that have been silent for more than 5 months. */
+  pruneStale: () => number;
+  /** Role / salary answers; marks them to be saved to the account. */
+  setProfile: (p: Partial<Pick<Settings, 'userType' | 'incomeSource' | 'incomeAmount' | 'payday'>>) => void;
   ingestSms: (raw: RawSms[]) => { added: number; unparsed: number };
   dismissUnparsed: (id: string) => void;
   saveAccount: (a: Partial<Account> & { bankCode: string; nickname: string }) => Account;
@@ -79,6 +93,40 @@ const upsert = <T extends { id: string }>(list: T[], item: T): T[] => {
   copy[i] = item;
   return copy;
 };
+
+type TxDebt = { transactions: Transaction[]; debts: Debt[] };
+
+/** Re-derives the normal category of a transaction that stops being a loan. */
+function recategorize(t: Transaction, learned: Record<string, string>): Transaction {
+  if (t.type === 'transfer') return { ...t, debtId: '', updatedAt: now() };
+  return {
+    ...t, debtId: '', updatedAt: now(),
+    categoryId: categorize({ type: t.type, channel: t.channel, counterparty: t.counterparty, note: t.note, incomeKind: t.incomeKind, learned }),
+  };
+}
+
+/** Detaches one transaction from its debt (removes the repayment, or the debt that was created from it). */
+function unlinkTx(s: TxDebt & { learned: Record<string, string> }, txId: string): TxDebt {
+  const tx = s.transactions.find((t) => t.id === txId);
+  if (!tx?.debtId) return { transactions: s.transactions, debts: s.debts };
+  const debt = s.debts.find((d) => d.id === tx.debtId);
+  if (debt && debt.sourceTxId === txId) {
+    return {
+      debts: s.debts.map((d) => (d.id === debt.id ? { ...d, deleted: true, updatedAt: now() } : d)),
+      transactions: s.transactions.map((t) => (t.debtId === debt.id ? recategorize(t, s.learned) : t)),
+    };
+  }
+  return {
+    debts: s.debts.map((d) => (d.id === tx.debtId ? { ...d, repayments: d.repayments.filter((r) => r.txId !== txId), updatedAt: now() } : d)),
+    transactions: s.transactions.map((t) => (t.id === txId ? recategorize(t, s.learned) : t)),
+  };
+}
+
+/** A transaction that was half of an own-account transfer stops being one once it is changed by hand. */
+function clearTransfer(list: Transaction[], tx: Transaction): Transaction[] {
+  if (!tx.transferGroup) return list;
+  return list.map((t) => (t.transferGroup === tx.transferGroup ? { ...t, transferGroup: '', updatedAt: now() } : t));
+}
 
 /** Pairs an outgoing and an incoming transaction of the same amount between two tracked accounts so they are not counted twice. */
 function linkTransfers(all: Transaction[], fresh: Transaction[]): Transaction[] {
@@ -116,8 +164,16 @@ export const useApp = create<AppState>()(
 
       setSettings: (p) => {
         if (p.language) setLang(p.language);
-        set((s) => ({ settings: { ...s.settings, ...p } }));
+        set((s) => {
+          const patch = { ...p };
+          // The role is chosen once. It cannot be switched afterwards (for example from personal to business).
+          if (s.settings.userType && patch.userType && patch.userType !== s.settings.userType) delete patch.userType;
+          const next = { ...s.settings, ...patch };
+          if (next.userType) next.workspace = next.userType === 'business' ? 'business' : 'personal';
+          return { settings: next };
+        });
       },
+      setProfile: (p) => get().setSettings({ ...p, profileSynced: false }),
 
       saveAccount: (a) => {
         const existing = a.id ? get().accounts.find((x) => x.id === a.id) : undefined;
@@ -145,7 +201,78 @@ export const useApp = create<AppState>()(
           const learned = learnCategory && p.categoryId && old.counterparty ? { ...s.learned, [old.counterparty.trim().toLowerCase()]: p.categoryId } : s.learned;
           return { transactions: upsert(s.transactions, next), learned };
         }),
-      deleteTransaction: (id) => set((s) => ({ transactions: s.transactions.map((t) => (t.id === id ? { ...t, deleted: true, updatedAt: now() } : t)) })),
+      deleteTransaction: (id) =>
+        set((s) => {
+          const un = unlinkTx(s, id); // a deleted loan transaction takes its repayment (or its debt) with it
+          return { debts: un.debts, transactions: un.transactions.map((t) => (t.id === id ? { ...t, deleted: true, updatedAt: now() } : t)) };
+        }),
+
+      flipTransaction: (id) =>
+        set((s) => {
+          const old = s.transactions.find((t) => t.id === id);
+          if (!old || old.type === 'transfer') return s;
+          const un = unlinkTx(s, id);
+          const cur = un.transactions.find((t) => t.id === id)!;
+          const type: Transaction['type'] = cur.type === 'income' ? 'expense' : 'income';
+          const flipped: Transaction = {
+            ...cur, type, transferGroup: '', fee: type === 'income' ? 0 : cur.fee, incomeKind: type === 'income' ? 'other' : undefined, updatedAt: now(),
+            categoryId: categorize({ type, channel: cur.channel, counterparty: cur.counterparty, note: cur.note, learned: s.learned }),
+          };
+          const cleared = clearTransfer(un.transactions, cur);
+          return { debts: un.debts, transactions: upsert(cleared, flipped) };
+        }),
+
+      moveToDebt: (id, opts) =>
+        set((s) => {
+          const old = s.transactions.find((t) => t.id === id);
+          const person = opts.person.trim();
+          if (!old || old.type === 'transfer' || !person) return s;
+          const un = unlinkTx(s, id);
+          const cur = un.transactions.find((t) => t.id === id)!;
+          const debt: Debt = {
+            id: uid(), direction: cur.type === 'expense' ? 'lent' : 'borrowed', person, principal: cur.amount, repayments: [],
+            dueDate: opts.dueDate ?? null, note: cur.note, sourceTxId: cur.id, workspace: cur.workspace, updatedAt: now(),
+          };
+          const linked: Transaction = { ...cur, debtId: debt.id, transferGroup: '', counterparty: cur.counterparty || person, categoryId: cur.type === 'expense' ? 'debt' : 'debt_in', updatedAt: now() };
+          return { debts: [debt, ...un.debts], transactions: upsert(clearTransfer(un.transactions, cur), linked) };
+        }),
+
+      applyToDebt: (txId, debtId) => {
+        const s = get();
+        const tx = s.transactions.find((t) => t.id === txId && !t.deleted);
+        const debt = s.debts.find((d) => d.id === debtId && !d.deleted);
+        if (!tx || !debt || tx.type === 'transfer') return false;
+        // Money going out repays something I borrowed; money coming in is a person paying back what I lent.
+        if ((tx.type === 'expense') !== (debt.direction === 'borrowed')) return false;
+        const outstanding = Math.max(0, debt.principal - debt.repayments.reduce((n, r) => n + r.amount, 0));
+        if (outstanding <= 0) return false;
+        set((st) => {
+          const un = unlinkTx(st, txId);
+          const cur = un.transactions.find((t) => t.id === txId)!;
+          const repayment = { id: uid(), amount: Math.min(cur.amount, outstanding), at: cur.occurredAt, txId };
+          return {
+            debts: un.debts.map((d) => (d.id === debtId ? { ...d, repayments: [...d.repayments, repayment], updatedAt: now() } : d)),
+            transactions: upsert(clearTransfer(un.transactions, cur), { ...cur, debtId, transferGroup: '', categoryId: cur.type === 'expense' ? 'debt' : 'debt_in', updatedAt: now() }),
+          };
+        });
+        return true;
+      },
+
+      unlinkDebt: (txId) => set((s) => unlinkTx(s, txId)),
+
+      pruneStale: () => {
+        const s = get();
+        const cutoff = smsCutoff();
+        if (s.unparsed.some((u) => u.date < cutoff)) set((st) => ({ unparsed: st.unparsed.filter((u) => u.date >= cutoff) }));
+        const stale = s.accounts.filter((a) => isStaleSmsAccount(a, s.transactions));
+        if (!stale.length) return 0;
+        const ids = new Set(stale.map((a) => a.id));
+        set((st) => ({
+          accounts: st.accounts.map((a) => (ids.has(a.id) ? { ...a, deleted: true, updatedAt: now() } : a)),
+          transactions: st.transactions.map((t) => (ids.has(t.accountId) && !t.deleted ? { ...t, deleted: true, updatedAt: now() } : t)),
+        }));
+        return stale.length;
+      },
 
       ingestSms: (raw) => {
         const s = get();
@@ -155,7 +282,9 @@ export const useApp = create<AppState>()(
         const fresh: Transaction[] = [];
         const unparsed: UnparsedSms[] = [];
 
+        const cutoff = smsCutoff(); // messages older than 5 months belong to accounts that are no longer in use
         for (const m of [...raw].sort((a, b) => a.date - b.date)) {
+          if (m.date < cutoff) continue;
           const v = parseSms(m.address, m.body, m.date);
           if (v.kind === 'unparsed') {
             if (!seenUnparsed.has(m.id)) unparsed.push({ id: m.id, address: m.address, body: m.body, date: m.date });
@@ -217,7 +346,11 @@ export const useApp = create<AppState>()(
       },
       addRepayment: (debtId, amount) =>
         set((s) => ({ debts: s.debts.map((d) => (d.id === debtId ? { ...d, repayments: [...d.repayments, { id: uid(), amount, at: now() }], updatedAt: now() } : d)) })),
-      deleteDebt: (id) => set((s) => ({ debts: s.debts.map((d) => (d.id === id ? { ...d, deleted: true, updatedAt: now() } : d)) })),
+      deleteDebt: (id) =>
+        set((s) => ({
+          debts: s.debts.map((d) => (d.id === id ? { ...d, deleted: true, updatedAt: now() } : d)),
+          transactions: s.transactions.map((t) => (t.debtId === id ? recategorize(t, s.learned) : t)), // they count as normal money again
+        })),
 
       saveGoal: (g) => {
         const old = g.id ? get().goals.find((x) => x.id === g.id) : undefined;
@@ -313,7 +446,9 @@ export const useApp = create<AppState>()(
       // Keep new settings (added in later versions) when older saved data is loaded.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        return { ...current, ...p, settings: { ...current.settings, ...(p.settings ?? {}) } };
+        const settings = { ...current.settings, ...(p.settings ?? {}) };
+        if (settings.userType) settings.workspace = settings.userType === 'business' ? 'business' : 'personal'; // one role, one workspace
+        return { ...current, ...p, categories: DEFAULT_CATEGORIES, settings };
       },
       onRehydrateStorage: () => (state) => {
         setLang(state?.settings?.language ?? 'en');

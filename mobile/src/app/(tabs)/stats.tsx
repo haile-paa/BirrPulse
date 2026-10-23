@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Screen, IconButton, SectionHeader } from '@/components/Header';
 import { Segmented } from '@/components/Segmented';
@@ -62,7 +61,7 @@ export default function Stats() {
       ) : cats.map((c, i) => {
         const cat = categoryById(s.categories, c.categoryId);
         return (
-          <Animated.View key={`${kind}-${c.categoryId}`} entering={FadeInDown.delay(i * 60).springify().damping(18)} layout={LinearTransition.springify()} style={styles.catRow}>
+          <View key={`${kind}-${c.categoryId}`} style={styles.catRow}>
             <CategoryIcon icon={cat.icon} color={cat.color} size={42} />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <View style={styles.catTop}>
@@ -72,15 +71,15 @@ export default function Stats() {
               <ProgressBar pct={c.total / grand} color={cat.color} height={6} />
               <Text style={styles.catSub}>{t(c.count > 1 ? '{pct}% · {n} transactions' : '{pct}% · 1 transaction', { pct: Math.round((c.total / grand) * 100), n: c.count })}</Text>
             </View>
-          </Animated.View>
+          </View>
         );
       })}
 
       {top.length > 0 ? (
-        <Animated.View entering={FadeIn.delay(200)}>
+        <View>
           <SectionHeader title="Biggest transactions" />
           {top.map((t, i) => <TxRow key={t.id} tx={t} index={i} categories={s.categories} accounts={s.accounts} />)}
-        </Animated.View>
+        </View>
       ) : null}
     </Screen>
   );
